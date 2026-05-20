@@ -1,0 +1,202 @@
+"use client";
+
+import React, { useRef, useState } from "react";
+import { useScrollReveal } from "../animations/useScrollReveal";
+
+export default function Contact() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [formState, setFormState] = useState({ name: "", email: "", message: "" });
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Hook for staggering and reveals
+  useScrollReveal(sectionRef, "projects"); // Reuse Projects fade batch elements or setup reveal
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormState({ ...formState, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simulate high-fidelity success feedback
+    setIsSubmitted(true);
+    setTimeout(() => {
+      setIsSubmitted(false);
+      setFormState({ name: "", email: "", message: "" });
+    }, 4000);
+  };
+
+  return (
+    <section
+      ref={sectionRef}
+      id="contact"
+      className="pt-24 pb-[60px] sm:pt-32 sm:pb-[60px] px-6 sm:px-12 md:px-24 bg-bg2 relative border-t border-border overflow-hidden"
+      aria-label="Contact & Connection Section"
+    >
+      {/* Subtle floating background detail grids */}
+      <div className="absolute inset-0 bg-[radial-gradient(rgba(99,102,241,0.012)_1.5px,transparent_1.5px)] bg-[size:32px_32px] pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          
+          {/* Left Column: Heading and Connection Details */}
+          <div className="lg:col-span-5 flex flex-col justify-start space-y-8">
+            <div>
+              <span className="label-caps mb-4 block tracking-[0.15em] text-accent">GET IN TOUCH</span>
+              <h2 className="text-3xl sm:text-5xl font-medium tracking-tight text-text mb-6">
+                Let&apos;s Build something real.
+              </h2>
+              <p className="text-sm sm:text-base leading-relaxed max-w-md" style={{ color: '#C8C8DC' }}>
+                Whether you have an internship opportunity, a freelance project, or simply want to chat about creative coding, feel free to reach out. I am always open to exploring new engineering horizons.
+              </p>
+            </div>
+
+            {/* Connection Information List */}
+            <div className="flex flex-col gap-6">
+              
+              {/* Row 1: Email */}
+              <div className="flex flex-col gap-1">
+                <span style={{fontSize:'11px', letterSpacing:'0.08em', 
+                  color:'#C8C8DC', fontWeight:500}}>EMAIL</span>
+                <a href="mailto:calderoncamilo905@gmail.com"
+                  style={{color:'#C8C8DC', fontSize:'14px'}}>
+                  calderoncamilo905@gmail.com
+                </a>
+              </div>
+
+              {/* Row 2: Location */}
+              <div className="flex flex-col gap-1">
+                <span style={{fontSize:'11px', letterSpacing:'0.08em',
+                  color:'#C8C8DC', fontWeight:500}}>LOCATION</span>
+                <span style={{color:'#C8C8DC', fontSize:'14px'}}>
+                  Bucaramanga, Colombia
+                </span>
+              </div>
+
+              {/* Row 3: Linkedin */}
+              <div className="flex flex-col gap-1">
+                <span style={{fontSize:'11px', letterSpacing:'0.08em',
+                  color:'#C8C8DC', fontWeight:500}}>LINKEDIN</span>
+                <a href="https://linkedin.com/in/juan-camilo-calderon-calderon-729619389"
+                  target="_blank" style={{color:'#C8C8DC', fontSize:'14px'}}>
+                  Juan Camilo Calderón
+                </a>
+              </div>
+
+              {/* Row 4: Github */}
+              <div className="flex flex-col gap-1">
+                <span style={{fontSize:'11px', letterSpacing:'0.08em',
+                  color:'#C8C8DC', fontWeight:500}}>GITHUB</span>
+                <a href="https://github.com/CamiloCalder0n"
+                  target="_blank" style={{color:'#C8C8DC', fontSize:'14px'}}>
+                  CamiloCalder0n
+                </a>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Right Column: Premium Contact Form */}
+          <div className="lg:col-span-7">
+            <div className="border border-border bg-card/40 rounded-2xl p-6 sm:p-10 relative overflow-hidden backdrop-blur-md">
+              
+              {/* Form border lighting glow ambient element */}
+              <div className="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -z-10 pointer-events-none" />
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* Form Header */}
+                <div className="border-b border-border/40 pb-6 mb-8 flex justify-between items-center">
+                  <span className="font-mono text-[10px] text-[#252535] uppercase tracking-widest">
+                    [ SECURE_MESSAGE_SERVICE ]
+                  </span>
+                </div>
+
+                {isSubmitted ? (
+                  <div className="py-12 text-center space-y-4">
+                    <div className="w-12 h-12 rounded-full border border-accent/40 bg-accent/10 flex items-center justify-center mx-auto text-accent mb-4 animate-[bounce_1s_ease-in-out_infinite]">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-medium text-text">Message Sent</h3>
+                    <p className="text-sm text-[#C8C8DC] max-w-xs mx-auto">
+                      Thank you! I will review your message and reply as soon as possible.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      
+                      {/* Name Input */}
+                      <div className="space-y-2">
+                        <label htmlFor="name" className="font-mono text-[11px] text-muted uppercase tracking-widest block">
+                          NAME
+                        </label>
+                        <input
+                          required
+                          type="text"
+                          id="name"
+                          name="name"
+                          value={formState.name}
+                          onChange={handleChange}
+                          placeholder="Your name"
+                          className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus:outline-none transition-all duration-300 font-mono"
+                        />
+                      </div>
+
+                      {/* Email Input */}
+                      <div className="space-y-2">
+                        <label htmlFor="email" className="font-mono text-[11px] text-muted uppercase tracking-widest block">
+                          EMAIL
+                        </label>
+                        <input
+                          required
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={formState.email}
+                          onChange={handleChange}
+                          placeholder="your@email.com"
+                          className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus:outline-none transition-all duration-300 font-mono"
+                        />
+                      </div>
+
+                    </div>
+
+                    {/* Message TextArea */}
+                    <div className="space-y-2">
+                      <label htmlFor="message" className="font-mono text-[11px] text-muted uppercase tracking-widest block">
+                        MESSAGE
+                      </label>
+                      <textarea
+                        required
+                        id="message"
+                        name="message"
+                        rows={5}
+                        value={formState.message}
+                        onChange={handleChange}
+                        placeholder="Tell me about your project..."
+                        className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus:outline-none transition-all duration-300 font-mono resize-none"
+                      />
+                    </div>
+
+                    {/* Submit Button */}
+                    <button
+                      type="submit"
+                      className="w-full py-4 rounded-lg bg-accent text-white font-mono text-xs uppercase tracking-widest font-semibold hover:opacity-85 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      Send Message &rarr;
+                    </button>
+                  </>
+                )}
+
+              </form>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+}
