@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const firstLinkRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,11 +16,32 @@ export default function Navbar() {
         setScrolled(false);
       }
     };
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  useEffect(() => {
+    if (!isOpen) return;
+
+    firstLinkRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  const toggleMenu = () => setIsOpen((current) => !current);
+
+  const closeMenu = () => {
+    setIsOpen(false);
+    requestAnimationFrame(() => toggleRef.current?.focus());
+  };
 
   const navLinks = [
     { label: "About", href: "#about" },
@@ -41,7 +64,7 @@ export default function Navbar() {
           {/* Brand Logo */}
           <a
             href="#hero"
-            className="font-mono font-bold text-sm tracking-[0.2em] text-text hover:text-accent transition-colors flex items-center gap-1.5"
+            className="font-mono font-bold text-sm tracking-[0.2em] text-text hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent transition-colors flex items-center gap-1.5"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
             JC.DEV
@@ -53,7 +76,7 @@ export default function Navbar() {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-xs font-mono uppercase tracking-widest text-muted hover:text-text transition-colors duration-300 relative py-1 group"
+                className="text-xs font-mono uppercase tracking-widest text-muted hover:text-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent transition-colors duration-300 relative py-1 group"
               >
                 {link.label}
                 <span className="absolute bottom-0 left-0 w-0 h-[1px] bg-accent transition-all duration-300 group-hover:w-full" />
@@ -63,10 +86,12 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
+            ref={toggleRef}
             onClick={toggleMenu}
-            className="md:hidden flex flex-col gap-1.5 p-1 text-muted hover:text-text transition-colors z-50 focus:outline-none"
+            className="md:hidden flex flex-col gap-1.5 p-1 text-muted hover:text-text transition-colors z-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
             aria-label="Toggle Mobile Menu"
             aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
           >
             <span
               className={`w-5 h-[1.5px] bg-current rounded-full transition-transform duration-300 ${
@@ -87,42 +112,41 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Drawer Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-base/95 backdrop-blur-2xl md:hidden transition-all duration-500 flex flex-col justify-center px-8 sm:px-12 ${
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <div className="flex flex-col gap-8">
-          <span className="font-mono text-[10px] text-accent tracking-[0.25em] uppercase border-b border-border pb-4">
-            [ Navigation Index ]
-          </span>
-          <div className="flex flex-col gap-6">
-            {navLinks.map((link, idx) => (
-              <a
-                key={link.label}
-                href={link.href}
-                onClick={() => setIsOpen(false)}
-                className={`text-2xl font-medium tracking-tight text-text hover:text-accent transition-colors duration-300 flex items-baseline gap-3 transform transition-transform duration-500 ${
-                  isOpen ? "translate-x-0" : "-translate-x-8"
-                }`}
-                style={{ transitionDelay: `${idx * 75}ms` }}
-              >
-                <span className="font-mono text-xs text-muted/40">0{idx + 1}.</span>
-                {link.label}
-              </a>
-            ))}
-          </div>
-          <div className="mt-8 pt-8 border-t border-border flex flex-col gap-2">
-            <span className="font-mono text-[9px] text-muted tracking-widest uppercase">
-              Juan Camilo Calderón Calderón
+      {isOpen ? (
+        <div
+          id="mobile-navigation"
+          className="fixed inset-0 z-40 bg-base/95 backdrop-blur-2xl md:hidden flex flex-col justify-center overflow-y-auto px-8 sm:px-12"
+          aria-label="Mobile navigation"
+        >
+          <div className="flex flex-col gap-8">
+            <span className="font-mono text-[10px] text-accent tracking-[0.25em] uppercase border-b border-border pb-4">
+              [ Navigation Index ]
             </span>
-            <span className="font-mono text-[9px] text-muted/60 tracking-wider">
-              Systems Engineering Student
-            </span>
+            <div className="flex flex-col gap-6">
+              {navLinks.map((link, idx) => (
+                <a
+                  key={link.label}
+                  ref={idx === 0 ? firstLinkRef : undefined}
+                  href={link.href}
+                  onClick={closeMenu}
+                  className="text-2xl font-medium tracking-tight text-text hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent transition-colors duration-300 flex items-baseline gap-3"
+                >
+                  <span className="font-mono text-xs text-muted/40">0{idx + 1}.</span>
+                  {link.label}
+                </a>
+              ))}
+            </div>
+            <div className="mt-8 pt-8 border-t border-border flex flex-col gap-2">
+              <span className="font-mono text-[9px] text-muted tracking-widest uppercase">
+                Juan Camilo Calderón Calderón
+              </span>
+              <span className="font-mono text-[9px] text-muted/60 tracking-wider">
+                Systems Engineering Student
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </>
   );
 }

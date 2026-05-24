@@ -85,3 +85,22 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--color-accent);
   box-shadow: 0 4px 30px rgba(99, 102, 241, 0.05);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .page-transition {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,12 +1,13 @@
 'use client'
 import { Canvas, useFrame } from '@react-three/fiber'
-import { Suspense, useRef, useMemo } from 'react'
+import { Suspense, useEffect, useRef, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import { useSceneStore } from '@/lib/sceneStore'
 
 // One mesh per scene — all mounted, only one visible
 function SceneBackground() {
   const scene = useSceneStore((s) => s.scene)
+  const [reducedMotion, setReducedMotion] = useState(false)
   
   // Refs for all meshes — direct mutation, no setState
   const heroRef = useRef<THREE.Mesh>(null)
@@ -25,37 +26,50 @@ function SceneBackground() {
     experience: { hero: 0,    about: 0, skills: 0, projects: 0, experience: 0.3 },
   }
 
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const syncMotionPreference = () => setReducedMotion(media.matches)
+
+    syncMotionPreference()
+    media.addEventListener('change', syncMotionPreference)
+    return () => media.removeEventListener('change', syncMotionPreference)
+  }, [])
+
   useFrame((_state, delta) => {
     const t = targets[scene] ?? targets.hero
     const speed = 2 * delta // smooth, framerate-independent
+    const opacityFor = (current: number, target: number) =>
+      reducedMotion ? target : THREE.MathUtils.lerp(current, target, speed)
 
     // Hero & Contact share same icosahedron mesh
     if (heroRef.current) {
       const mat = heroRef.current.material as THREE.MeshBasicMaterial
-      mat.opacity = THREE.MathUtils.lerp(mat.opacity, t.hero, speed)
-      heroRef.current.rotation.y += 0.003
-      heroRef.current.rotation.x += 0.001
+      mat.opacity = opacityFor(mat.opacity, t.hero)
+      if (!reducedMotion) {
+        heroRef.current.rotation.y += 0.003
+        heroRef.current.rotation.x += 0.001
+      }
       heroRef.current.visible = mat.opacity > 0.001
     }
     if (aboutRef.current) {
       const mat = aboutRef.current.material as THREE.PointsMaterial
-      mat.opacity = THREE.MathUtils.lerp(mat.opacity, t.about, speed)
+      mat.opacity = opacityFor(mat.opacity, t.about)
       aboutRef.current.visible = mat.opacity > 0.001
     }
     if (skillsRef.current) {
       const mat = skillsRef.current.material as THREE.LineBasicMaterial
-      mat.opacity = THREE.MathUtils.lerp(mat.opacity, t.skills, speed)
+      mat.opacity = opacityFor(mat.opacity, t.skills)
       skillsRef.current.visible = mat.opacity > 0.001
     }
     if (projectsRef.current) {
       const mat = projectsRef.current.material as THREE.LineBasicMaterial
-      mat.opacity = THREE.MathUtils.lerp(mat.opacity, t.projects, speed)
+      mat.opacity = opacityFor(mat.opacity, t.projects)
       projectsRef.current.rotation.x = -0.5
       projectsRef.current.visible = mat.opacity > 0.001
     }
     if (experienceRef.current) {
       const mat = experienceRef.current.material as THREE.MeshBasicMaterial
-      mat.opacity = THREE.MathUtils.lerp(mat.opacity, t.experience, speed)
+      mat.opacity = opacityFor(mat.opacity, t.experience)
       experienceRef.current.visible = mat.opacity > 0.001
     }
   })
@@ -177,7 +191,7 @@ export default function GlobalCanvas() {
       position: 'fixed',
       top: 0, left: 0,
       width: '100vw', height: '100vh',
-      zIndex: -1,
+      zIndex: 0,
       pointerEvents: 'none',
     }}>
       <Canvas

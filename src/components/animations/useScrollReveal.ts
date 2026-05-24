@@ -10,6 +10,10 @@ export function useScrollReveal(
   useEffect(() => {
     if (!containerRef.current) return;
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
     // Build a scoped GSAP context so everything registers cleanly and cleans up on unmount
     const ctx = gsap.context(() => {
       if (type === "about") {

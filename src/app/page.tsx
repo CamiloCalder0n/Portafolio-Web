@@ -13,8 +13,8 @@ import Contact from "@/components/sections/Contact";
 export default function Home() {
   return (
     <>
-      {/* Absolute background layout elements */}
-      <div className="fixed inset-0 z-0 bg-base overflow-hidden pointer-events-none">
+      {/* Ambient background details live between the canvas and content. */}
+      <div className="fixed inset-0 z-[1] overflow-hidden pointer-events-none">
         <ParticleField />
       </div>
 
@@ -24,7 +24,7 @@ export default function Home() {
 
       {/* Page layout with section blocks stacked */}
       <main className="relative z-10 w-full min-h-screen">
-        {/* Hero section with internal R3F interactive Canvas */}
+        {/* Hero shares the persistent R3F background canvas. */}
         <Hero />
         
         <About />

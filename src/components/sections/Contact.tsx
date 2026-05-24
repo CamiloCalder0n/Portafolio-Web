@@ -1,35 +1,63 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { useScrollReveal } from "../animations/useScrollReveal";
+import React, { useState } from "react";
+
+type ContactState = "idle" | "submitting" | "success" | "error";
+
+interface ContactResponse {
+  ok: boolean;
+  error?: string;
+}
+
+const INITIAL_FORM_STATE = { name: "", email: "", message: "" };
 
 export default function Contact() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const [formState, setFormState] = useState({ name: "", email: "", message: "" });
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  // Hook for staggering and reveals
-  useScrollReveal(sectionRef, "projects"); // Reuse Projects fade batch elements or setup reveal
+  const [formState, setFormState] = useState(INITIAL_FORM_STATE);
+  const [contactState, setContactState] = useState<ContactState>("idle");
+  const [feedback, setFeedback] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (contactState === "error") {
+      setContactState("idle");
+      setFeedback("");
+    }
+
     setFormState({ ...formState, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate high-fidelity success feedback
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormState({ name: "", email: "", message: "" });
-    }, 4000);
+    setContactState("submitting");
+    setFeedback("");
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formState),
+      });
+      const result = (await response.json()) as ContactResponse;
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error || "The message could not be sent.");
+      }
+
+      setContactState("success");
+      setFormState(INITIAL_FORM_STATE);
+    } catch (error) {
+      setContactState("error");
+      setFeedback(
+        error instanceof Error
+          ? error.message
+          : "The message could not be sent right now."
+      );
+    }
   };
 
   return (
     <section
-      ref={sectionRef}
       id="contact"
-      className="pt-24 pb-[60px] sm:pt-32 sm:pb-[60px] px-6 sm:px-12 md:px-24 bg-bg2 relative border-t border-border overflow-hidden"
+      className="pt-24 pb-[60px] sm:pt-32 sm:pb-[60px] px-6 sm:px-12 md:px-24 bg-bg2/80 relative border-t border-border overflow-hidden"
       aria-label="Contact & Connection Section"
     >
       {/* Subtle floating background detail grids */}
@@ -77,7 +105,7 @@ export default function Contact() {
                 <span style={{fontSize:'11px', letterSpacing:'0.08em',
                   color:'#C8C8DC', fontWeight:500}}>LINKEDIN</span>
                 <a href="https://linkedin.com/in/juan-camilo-calderon-calderon-729619389"
-                  target="_blank" style={{color:'#C8C8DC', fontSize:'14px'}}>
+                  target="_blank" rel="noopener noreferrer" style={{color:'#C8C8DC', fontSize:'14px'}}>
                   Juan Camilo Calderón
                 </a>
               </div>
@@ -87,7 +115,7 @@ export default function Contact() {
                 <span style={{fontSize:'11px', letterSpacing:'0.08em',
                   color:'#C8C8DC', fontWeight:500}}>GITHUB</span>
                 <a href="https://github.com/CamiloCalder0n"
-                  target="_blank" style={{color:'#C8C8DC', fontSize:'14px'}}>
+                  target="_blank" rel="noopener noreferrer" style={{color:'#C8C8DC', fontSize:'14px'}}>
                   CamiloCalder0n
                 </a>
               </div>
@@ -111,8 +139,8 @@ export default function Contact() {
                   </span>
                 </div>
 
-                {isSubmitted ? (
-                  <div className="py-12 text-center space-y-4">
+                {contactState === "success" ? (
+                  <div className="py-12 text-center space-y-4" role="status" aria-live="polite">
                     <div className="w-12 h-12 rounded-full border border-accent/40 bg-accent/10 flex items-center justify-center mx-auto text-accent mb-4 animate-[bounce_1s_ease-in-out_infinite]">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -139,8 +167,9 @@ export default function Contact() {
                           name="name"
                           value={formState.name}
                           onChange={handleChange}
+                          autoComplete="name"
                           placeholder="Your name"
-                          className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus:outline-none transition-all duration-300 font-mono"
+                          className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-colors duration-300 font-mono"
                         />
                       </div>
 
@@ -156,8 +185,9 @@ export default function Contact() {
                           name="email"
                           value={formState.email}
                           onChange={handleChange}
+                          autoComplete="email"
                           placeholder="your@email.com"
-                          className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus:outline-none transition-all duration-300 font-mono"
+                          className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-colors duration-300 font-mono"
                         />
                       </div>
 
@@ -176,16 +206,27 @@ export default function Contact() {
                         value={formState.message}
                         onChange={handleChange}
                         placeholder="Tell me about your project..."
-                        className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus:outline-none transition-all duration-300 font-mono resize-none"
+                        className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-colors duration-300 font-mono resize-none"
                       />
                     </div>
+
+                    <p
+                      className={`min-h-5 text-sm ${
+                        contactState === "error" ? "text-text" : "text-muted"
+                      }`}
+                      role={contactState === "error" ? "alert" : "status"}
+                      aria-live="polite"
+                    >
+                      {contactState === "error" ? feedback : ""}
+                    </p>
 
                     {/* Submit Button */}
                     <button
                       type="submit"
-                      className="w-full py-4 rounded-lg bg-accent text-white font-mono text-xs uppercase tracking-widest font-semibold hover:opacity-85 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
+                      disabled={contactState === "submitting"}
+                      className="w-full py-4 rounded-lg bg-accent text-white font-mono text-xs uppercase tracking-widest font-semibold hover:opacity-85 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-opacity duration-300 flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      Send Message &rarr;
+                      {contactState === "submitting" ? "Sending..." : "Send Message"} &rarr;
                     </button>
                   </>
                 )}

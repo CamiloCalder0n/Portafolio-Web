@@ -9,6 +9,14 @@ export default function PageTransition() {
   const loaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (containerRef.current) {
+        containerRef.current.style.display = "none";
+      }
+
+      return;
+    }
+
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         onComplete: () => {
@@ -39,7 +47,7 @@ export default function PageTransition() {
   return (
     <div
       ref={containerRef}
-      className="fixed inset-0 z-[9999] pointer-events-none"
+      className="page-transition fixed inset-0 z-[9999] pointer-events-none"
     >
       <div
         ref={wipeRef}

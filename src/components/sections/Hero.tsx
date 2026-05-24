@@ -14,7 +14,7 @@ export default function Hero() {
     <section
       ref={containerRef}
       id="hero"
-      className="min-h-screen w-full flex items-center justify-center bg-base px-6 sm:px-12 md:px-24 relative overflow-hidden z-10"
+      className="min-h-screen w-full flex items-center justify-center bg-base/70 px-6 sm:px-12 md:px-24 relative overflow-hidden z-10"
       aria-label="Introduction Section"
     >
       <div className="max-w-5xl mx-auto w-full text-center relative z-20 flex flex-col items-center justify-center pointer-events-none">

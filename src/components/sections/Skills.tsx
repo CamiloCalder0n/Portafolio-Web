@@ -126,7 +126,7 @@ export default function Skills() {
       ref={sectionRef}
       id="skills"
       data-scene="skills"
-      className="py-24 sm:py-32 px-6 sm:px-12 md:px-24 bg-base relative border-t border-border overflow-hidden"
+      className="py-24 sm:py-32 px-6 sm:px-12 md:px-24 bg-base/80 relative border-t border-border overflow-hidden"
       aria-label="Skills & Capabilities Section"
     >
       {/* Decorative subtle dot background */}

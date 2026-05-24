@@ -75,7 +75,7 @@ export default function Projects() {
       ref={sectionRef}
       id="projects"
       data-scene="projects"
-      className="py-24 sm:py-32 px-6 sm:px-12 md:px-24 bg-bg2 relative border-t border-border overflow-hidden"
+      className="py-24 sm:py-32 px-6 sm:px-12 md:px-24 bg-bg2/80 relative border-t border-border overflow-hidden"
       aria-label="Projects Section"
     >
       {/* Decorative background grid line */}

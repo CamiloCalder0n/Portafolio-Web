@@ -7,6 +7,10 @@ export function useHeroAnimation(containerRef: React.RefObject<HTMLDivElement | 
   useEffect(() => {
     if (!containerRef.current) return;
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
     // Create a scoped GSAP context to handle cleanups automatically (especially in React StrictMode)
     const ctx = gsap.context(() => {
       const tl = gsap.timeline();
@@ -51,17 +55,6 @@ export function useHeroAnimation(containerRef: React.RefObject<HTMLDivElement | 
         "-=0.5"
       );
 
-      // Soft reveal for navbar
-      tl.to(
-        "nav",
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: "power2.out",
-        },
-        "-=0.6"
-      );
     }, containerRef);
 
     // Clean up on component unmount
