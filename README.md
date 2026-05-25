@@ -1,109 +1,108 @@
-# 🌌 Portfolio JC — Juan Camilo Calderón Calderón
+# Portafolio JC — Juan Camilo Calderón Calderón
 
-> **A World-Class Personal Portfolio** | Systems Engineering Student at UNAB (Bucaramanga, Colombia)
->
-> Designed with a dark monochromatic cold-tone aesthetic, cinematic scroll animations, and interactive 3D elements.
+Este es el repositorio oficial del portafolio profesional de Juan Camilo Calderón Calderón, estudiante de Ingeniería de Sistemas en la Universidad Autónoma de Bucaramanga (UNAB), Colombia. 
 
----
-
-## 🌟 Vision & Design Philosophy
-
-This portfolio stands out through a meticulously selected dark monochromatic theme accentuated by a single cold accent: **Cold Indigo (`#6366F1`)**. The visual language is premium, minimal, and highly interactive, avoiding generic colors and heavy shadows in favor of crisp borders, elegant geometry, and responsive layouts.
-
-### 🎨 Design System & Tokens
-* **Base Background:** `#050508` (Deep space)
-* **Secondary Background:** `#0D0D14` (Soft dark panels)
-* **Card Surface:** `#16161F` (Surfaces)
-* **Border Color:** `#252535` (Fine lines)
-* **Text Primary:** `#E8E8F5` (Off-white)
-* **Text Muted:** `#A0A0C0` (Cool gray-blue)
-* **Cold Accent:** `#6366F1` (Indigo — used sparingly for focus points)
-* **Typography:** **Geist Sans & Mono** (Optimized via `next/font`), emphasizing weights around `500` for headings instead of heavy bolding.
+El sitio está estructurado para presentar de manera minimalista y de alto rendimiento una variedad de proyectos de desarrollo full-stack, diseño de interfaces y visualizaciones tridimensionales interactivas.
 
 ---
 
-## 🛠 Tech Stack
+## Visión y Filosofía de Diseño
 
-The application is built using a modern, performant, and type-safe frontend stack:
+La interfaz del portafolio se rige por un esquema de diseño de escala de grises fría con un único acento cromático. Se evitan degradados, sombras pesadas y múltiples colores secundarios para priorizar la legibilidad y la fluidez visual.
 
-* **Framework:** Next.js 15 (App Router with Turbopack support)
-* **Language:** TypeScript & React 19
-* **Styling:** Tailwind CSS v4 (Using modern custom properties)
-* **3D Engine:** React Three Fiber (R3F), `@react-three/drei`, and Three.js
-* **Animations:** GSAP (GreenSock Animation Platform) & ScrollTrigger
-* **Backend Utilities:** Resend API for transactional email forwarding
-* **Deployment:** Vercel
+### Colores del Sistema
+* **Fondo Base:** `#050508` (Tono oscuro profundo)
+* **Fondo Secundario:** `#0D0D14` (Paneles y secciones internas)
+* **Superficie de Tarjetas:** `#16161F` (Contenedores de proyectos)
+* **Borde:** `#252535` (Líneas finas de separación)
+* **Texto Primario:** `#E8E8F5` (Blanco frío)
+* **Texto Secundario:** `#A0A0C0` (Gris azulado)
+* **Acento Cromático:** `#6366F1` (Índigo frío, utilizado exclusivamente para puntos de enfoque y estados activos)
 
----
-
-## ✨ Key Features
-
-1. **Interactive 3D Background (`GlobalCanvas.tsx`)**
-   * Immersive Three.js Canvas running smoothly in the background.
-   * Floating abstract **wireframe icosahedron** for the Hero/Contact scenes.
-   * A beautiful scattered **point cloud** for the About section.
-   * Grid line wireframes with dynamic **tilt and cursor-responsive parallax** for Skills & Projects.
-   * A dynamic **CatmullRom spiral tube** for the Experience timeline.
-2. **Cinematic Motion Design**
-   * Staggered GSAP SplitText-like animations on titles.
-   * ScrollTrigger-based batch reveals for grid cards.
-   * Seamless dark overlay wipes for page transitions.
-   * Responsive, touch-friendly configurations that disable heavy effects on mobile to prevent scrolling latency.
-3. **Optimized Contact Endpoint**
-   * Contact form communicating with an App Router route (`/api/contact`).
-   * Sends clean notifications to `CONTACT_TO_EMAIL` using the modern `resend` library.
+### Tipografía y Espaciado
+* **Fuente:** Geist Sans y Geist Mono (cargadas mediante `next/font`), con énfasis en pesos medianos (`500`) en encabezados.
+* **Espaciado de Secciones:** 120px en escritorio y 80px en dispositivos móviles.
 
 ---
 
-## 📂 Project Showcase
+## Arquitectura Tecnológica
 
-Inside the portfolio, we highlight three high-impact, progressive projects currently in development:
+El proyecto se desarrolla bajo un conjunto de tecnologías robustas y modernas orientadas al rendimiento y al tipado estricto:
 
-| Project | Description | Tech Stack | Complexity | Status |
+* **Framework:** Next.js 15 (App Router con soporte optimizado para Turbopack)
+* **Lenguaje:** TypeScript y React 19
+* **Estilos:** Tailwind CSS v4
+* **Gráficos 3D:** React Three Fiber, `@react-three/drei` y Three.js
+* **Animaciones:** GSAP (GreenSock Animation Platform) y ScrollTrigger
+* **Envío de Mensajes:** Resend API para la gestión del formulario de contacto
+* **Plataforma de Despliegue:** Vercel
+
+---
+
+## Características Principales
+
+### 1. Entorno 3D Interactivo (`GlobalCanvas.tsx`)
+El portafolio integra un lienzo tridimensional que corre en segundo plano y responde a la posición del cursor y al avance del scroll:
+* **Escena Hero / Contacto:** Un icosaedro alámbrico abstracto de baja densidad poligonal.
+* **Escena About:** Una nube de puntos dispersos de color índigo.
+* **Escena Skills / Projects:** Rejillas alámbricas con inclinación en perspectiva y respuesta sutil al movimiento físico del mouse.
+* **Escena Experience:** Una espiral CatmullRom tridimensional que acompaña el flujo cronológico.
+
+### 2. Animaciones de Alto Rendimiento
+* Carga secuencial de caracteres y palabras en los títulos del Hero.
+* Animación por lotes (`ScrollTrigger.batch`) en la presentación de habilidades para evitar saltos de rendimiento.
+* Transiciones limpias a través de un panel oscuro al navegar entre vistas.
+* Reglas adaptativas que mitigan o detienen la carga gráfica en dispositivos móviles para optimizar la experiencia en navegadores móviles.
+
+### 3. API de Contacto
+* Formulario completamente integrado que se comunica de forma asíncrona con el endpoint `/api/contact` en Next.js App Router, enviando la información directamente por correo a través de Resend.
+
+---
+
+## Proyectos en Desarrollo
+
+| Proyecto | Descripción | Tecnologías | Dificultad | Estado |
 | :--- | :--- | :--- | :--- | :--- |
-| **🛠 DevForge** | AI-powered documentation generator. Input codebase info to instantly craft premium READMEs. | Next.js, Gemini API, Tailwind, Vercel | ⬤ ○ ○ Beginner | *In Progress* |
-| **🎨 DesignOS** | Interactive design system generator. Custom palette, typography, and token builder. | React, Canvas API, Node.js, PostgreSQL | ⬤ ⬤ ○ Intermediate | *In Progress* |
-| **🌌 Cosmos** | Real-time 3D data visualizer representing live API endpoints in physical space. | R3F, GSAP, WebSockets, REST APIs | ⬤ ⬤ ⬤ Advanced | *In Progress* |
+| **DevForge** | Generador de documentación profesional README a partir del análisis del código mediante inteligencia artificial. | Next.js, Gemini API, Tailwind, Vercel | 1/3 (Principiante) | En Progreso |
+| **DesignOS** | Generador y gestor interactivo de tokens de diseño, paletas de colores y tipografías exportables. | React, Canvas API, Node.js, PostgreSQL | 2/3 (Intermedio) | En Progreso |
+| **Cosmos** | Visualizador de datos en tiempo real representado mediante escenas tridimensionales interactivas en la web. | React Three Fiber, GSAP, WebSockets, REST APIs | 3/3 (Avanzado) | En Progreso |
 
 ---
 
-## 🚀 Getting Started
+## Guía de Configuración y Despliegue
 
-Follow these steps to run the portfolio locally on your machine.
+### Requisitos Previos
+* Node.js v18 o superior instalado.
+* Gestor de paquetes `npm`.
 
-### 1. Prerequisites
-Ensure you have [Node.js](https://nodejs.org) (v18+ recommended) and `npm` installed.
-
-### 2. Clone & Install Dependencies
-Clone your repository and install packages:
+### 1. Clonar el repositorio e instalar dependencias
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/CamiloCalder0n/Portafolio-Web.git
 cd portfolio-jc
 npm install
 ```
 
-### 3. Setup Environment Variables
-Copy `.env.example` to `.env.local`:
+### 2. Configurar variables de entorno
+Copie el archivo de ejemplo para configurar sus credenciales locales:
 ```bash
 cp .env.example .env.local
 ```
-Open `.env.local` and add your **Resend** API configuration:
+Edite `.env.local` y proporcione las llaves de Resend correspondientes:
 ```env
-RESEND_API_KEY=re_YOUR_SECRET_KEY
+RESEND_API_KEY=re_tu_llave_secreta
 RESEND_FROM_EMAIL=onboarding@resend.dev
-CONTACT_TO_EMAIL=your-personal-email@domain.com
+CONTACT_TO_EMAIL=tu_correo_personal@dominio.com
 ```
-> 💡 *Note: `RESEND_FROM_EMAIL` must be a domain validated in your Resend account, or `onboarding@resend.dev` for testing with authorized emails.*
 
-### 4. Run Development Server
-Start Next.js with Turbopack:
+### 3. Ejecutar en entorno de desarrollo
+Inicie el servidor de desarrollo utilizando Turbopack:
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser to inspect the application.
+Acceda a [http://localhost:3000](http://localhost:3000) en su navegador.
 
-### 5. Build for Production
-To generate an optimized production bundle:
+### 4. Construcción para producción
+Para compilar y optimizar la aplicación para producción:
 ```bash
 npm run build
 npm run start
@@ -111,31 +110,29 @@ npm run start
 
 ---
 
-## 📐 Folder Structure
-
-Here's an overview of the key directories and files:
+## Estructura del Directorio
 
 ```
 portfolio-jc/
-├── public/                 # Static assets
+├── public/                 # Recursos estáticos (imágenes, vectores)
 └── src/
     ├── app/
-    │   ├── api/contact/    # Contact form endpoint using Resend
-    │   ├── globals.css     # Tailwind variables & base scroll setups
-    │   ├── layout.tsx      # Font, HTML layout & metadata configurations
-    │   └── page.tsx        # Entry page assembling all sections
+    │   ├── api/contact/    # Endpoint para la gestión de envíos con Resend
+    │   ├── globals.css     # Variables de diseño y estilos de Tailwind
+    │   ├── layout.tsx      # Configuración de tipografía, metadatos y envoltura principal
+    │   └── page.tsx        # Página de inicio que orquesta las secciones
     ├── components/
-    │   ├── animations/     # Reusable custom GSAP & ScrollReveal hooks
-    │   ├── sections/       # Section components (Hero, About, Skills, Projects, Experience, Contact)
-    │   ├── three/          # R3F Canvas components (GlobalCanvas.tsx, etc.)
-    │   └── ui/             # Core layout elements (Navbar, Footer, PageTransition)
+    │   ├── animations/     # Hooks personalizados de GSAP y ScrollReveal
+    │   ├── sections/       # Componentes de interfaz (Hero, About, Skills, Projects, Experience, Contact)
+    │   ├── three/          # Componentes de React Three Fiber (GlobalCanvas.tsx)
+    │   └── ui/             # Elementos comunes (Navbar, Footer, PageTransition)
     ├── lib/
-    │   └── gsap.ts         # Central GSAP library setup and global plugins
-    └── types/              # TypeScript typings
+    │   └── gsap.ts         # Registro global de complementos y utilidades de GSAP
+    └── types/              # Tipados de TypeScript
 ```
 
 ---
 
-## 🛡️ License
+## Licencia
 
-This project is private and dedicated to the portfolio of **Juan Camilo Calderón Calderón**. All rights reserved.
+Este proyecto es de carácter privado y de uso exclusivo para el portafolio profesional de **Juan Camilo Calderón Calderón**. Todos los derechos reservados.
