@@ -1,13 +1,13 @@
 'use client'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Canvas, useFrame } from '@react-three/fiber'
 import { Suspense, useEffect, useRef, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import { useSceneStore } from '@/lib/sceneStore'
+import { AsciiRenderer } from '@react-three/drei'
 
-function SceneBackground() {
+function SceneBackground({ reducedMotion }: { reducedMotion: boolean }) {
   const scene = useSceneStore((s) => s.scene)
-  const [reducedMotion, setReducedMotion] = useState(false)
-  const { size } = useThree()
+  const isRendering = useSceneStore((s) => s.isRendering)
 
   // Refs for meshes
   const heroRef = useRef<THREE.Mesh>(null)
@@ -23,12 +23,12 @@ function SceneBackground() {
 
   // Target opacities per scene
   const targets: Record<string, Record<string, number>> = {
-    hero: { hero: 0.6, about: 0, skills: 0, projects: 0, experience: 0 },
-    contact: { hero: 0.45, about: 0, skills: 0, projects: 0, experience: 0 },
-    about: { hero: 0, about: 0.5, skills: 0, projects: 0, experience: 0 },
-    skills: { hero: 0, about: 0, skills: 0.4, projects: 0, experience: 0 },
-    projects: { hero: 0, about: 0, skills: 0, projects: 0.4, experience: 0 },
-    experience: { hero: 0, about: 0, skills: 0, projects: 0, experience: 0.5 },
+    hero: { hero: 0.65, about: 0, skills: 0, projects: 0, experience: 0 },
+    contact: { hero: 0.5, about: 0, skills: 0, projects: 0, experience: 0 },
+    about: { hero: 0, about: 0.6, skills: 0, projects: 0, experience: 0 },
+    skills: { hero: 0, about: 0, skills: 0.55, projects: 0, experience: 0 },
+    projects: { hero: 0, about: 0, skills: 0, projects: 0.55, experience: 0 },
+    experience: { hero: 0, about: 0, skills: 0, projects: 0, experience: 0.6 },
   }
 
   // Listen to mouse globally
@@ -42,17 +42,11 @@ function SceneBackground() {
     return () => window.removeEventListener('mousemove', onMove)
   }, [])
 
-  useEffect(() => {
-    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
-    const sync = () => setReducedMotion(media.matches)
-    sync()
-    media.addEventListener('change', sync)
-    return () => media.removeEventListener('change', sync)
-  }, [])
-
   useFrame((_state, delta) => {
+    // PFD L0: Detiene todo renderizado y cálculos si la pestaña o componente está fuera de foco
+    if (!isRendering) return
+
     const t = targets[scene] ?? targets.hero
-    // Smooth but not instant — ~0.8s transition feel
     const speed = Math.min(delta * 3, 1)
     const lerp = (cur: number, tgt: number) =>
       reducedMotion ? tgt : THREE.MathUtils.lerp(cur, tgt, speed)
@@ -259,8 +253,59 @@ function SceneBackground() {
 }
 
 export default function GlobalCanvas() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [reducedMotion, setReducedMotion] = useState(false)
+  const setIsRendering = useSceneStore((s) => s.setIsRendering)
+
+  useEffect(() => {
+    // 1. Detect reduced motion
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const syncMotion = () => setReducedMotion(media.matches)
+    syncMotion()
+    media.addEventListener('change', syncMotion)
+
+    // 2. Listen to tab visibility changes
+    const handleVisibility = () => {
+      setIsRendering(document.visibilityState === 'visible')
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    // 3. content-visibility auto state change optimization
+    const el = containerRef.current
+    if (el) {
+      const handleStateChange = (e: Event) => {
+        const skipped = (e as Event & { skipped?: boolean }).skipped ?? false
+        setIsRendering(!skipped)
+      }
+      el.addEventListener('contentvisibilityautostatechange', handleStateChange)
+      
+      // Fallback IntersectionObserver for older browsers
+      if (!('contentVisibility' in document.documentElement.style)) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            setIsRendering(entry.isIntersecting)
+          })
+        }, { rootMargin: '200px' })
+        observer.observe(el)
+        return () => {
+          media.removeEventListener('change', syncMotion)
+          document.removeEventListener('visibilitychange', handleVisibility)
+          el.removeEventListener('contentvisibilityautostatechange', handleStateChange)
+          observer.disconnect()
+        }
+      }
+
+      return () => {
+        media.removeEventListener('change', syncMotion)
+        document.removeEventListener('visibilitychange', handleVisibility)
+        el.removeEventListener('contentvisibilityautostatechange', handleStateChange)
+      }
+    }
+  }, [setIsRendering])
+
   return (
     <div
+      ref={containerRef}
       style={{
         position: 'fixed',
         top: 0,
@@ -269,6 +314,8 @@ export default function GlobalCanvas() {
         height: '100vh',
         zIndex: 0,
         pointerEvents: 'none',
+        contentVisibility: 'auto',
+        containIntrinsicSize: 'auto none auto 100vh',
       }}
     >
       <Canvas
@@ -277,7 +324,16 @@ export default function GlobalCanvas() {
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>
-          <SceneBackground />
+          <SceneBackground reducedMotion={reducedMotion} />
+          {/* PFD L1: Sombreador ASCII en tiempo real para un impacto visual único de 50ms */}
+          {!reducedMotion && (
+            <AsciiRenderer 
+              characters=" .:-=+*#%@█▓▒░"
+              fgColor="#6366F1"
+              bgColor="transparent"
+              invert={false}
+            />
+          )}
         </Suspense>
       </Canvas>
     </div>

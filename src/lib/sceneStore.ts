@@ -8,9 +8,13 @@ export type SceneType =
 interface SceneStore {
   scene: SceneType
   setScene: (s: SceneType) => void
+  isRendering: boolean
+  setIsRendering: (r: boolean) => void
 }
 
 export const useSceneStore = create<SceneStore>((set) => ({
   scene: 'hero',
   setScene: (scene) => set({ scene }),
+  isRendering: true,
+  setIsRendering: (isRendering) => set({ isRendering }),
 }))

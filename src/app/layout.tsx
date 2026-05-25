@@ -1,17 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Syne, DM_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 import ThreeWrapper from "@/components/three/ThreeWrapper";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const syne = Syne({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-syne",
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmMono = DM_Mono({
   subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  variable: "--font-dm-mono",
+  display: "swap",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-newsreader",
   display: "swap",
 });
 
@@ -48,7 +58,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-base text-text selection:bg-accent selection:text-white`}
+        className={`${syne.variable} ${dmMono.variable} ${newsreader.variable} font-sans antialiased bg-base text-text selection:bg-accent selection:text-white`}
       >
         <ThreeWrapper />
         {children}

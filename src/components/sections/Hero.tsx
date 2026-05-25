@@ -3,52 +3,12 @@
 import React, { useRef } from "react";
 import SplitText from "../ui/SplitText";
 import { useHeroAnimation } from "../animations/useHeroAnimation";
-
-// Magnetic CTA — applies a subtle offset following mouse position
-function MagneticButton({
-  href,
-  className,
-  children,
-}: {
-  href: string;
-  className: string;
-  children: React.ReactNode;
-}) {
-  const ref = useRef<HTMLAnchorElement>(null);
-
-  const handleMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - (rect.left + rect.width / 2);
-    const y = e.clientY - (rect.top + rect.height / 2);
-    el.style.transform = `translate(${x * 0.2}px, ${y * 0.25}px)`;
-  };
-
-  const handleLeave = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.transform = "translate(0, 0)";
-  };
-
-  return (
-    <a
-      ref={ref}
-      href={href}
-      className={`hero-cta ${className}`}
-      onMouseMove={handleMove}
-      onMouseLeave={handleLeave}
-      style={{ transition: "transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)" }}
-    >
-      {children}
-    </a>
-  );
-}
+import MagneticButton from "../ui/MagneticButton";
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Cinematic GSAP timeline reveals on mount
+  // Revelaciones cinemáticas con GSAP y Scramble ASCII al cargar
   useHeroAnimation(containerRef);
 
   return (
@@ -60,7 +20,7 @@ export default function Hero() {
       aria-label="Introduction Section"
       style={{ background: "transparent" }}
     >
-      {/* Very subtle vignette so text stays legible over the 3D canvas */}
+      {/* PFD L1: Efecto vignette sutil para proteger la legibilidad del texto sobre el lienzo ASCII 3D */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -71,12 +31,12 @@ export default function Hero() {
 
       <div className="max-w-5xl mx-auto w-full text-center relative z-20 flex flex-col items-center justify-center pointer-events-none">
 
-        {/* Uppercase status label */}
-        <span className="label-caps mb-6 text-xs sm:text-sm text-accent tracking-[0.15em] opacity-90 block pointer-events-auto">
+        {/* Etiqueta superior en mayúsculas estilo PFD L2 */}
+        <span className="label-caps mb-6 text-xs sm:text-sm text-accent tracking-[0.15em] opacity-90 block pointer-events-auto select-none">
           SYSTEMS ENGINEERING STUDENT — UNAB
         </span>
 
-        {/* Cinematic character-split name reveal */}
+        {/* Nombre principal en Syne Display con animación Scramble ASCII */}
         <h1
           className="text-4xl sm:text-6xl md:text-8xl font-medium tracking-tight text-text leading-tight mb-8 pointer-events-auto"
           style={{ textWrap: "balance" } as React.CSSProperties}
@@ -88,7 +48,7 @@ export default function Hero() {
           />
         </h1>
 
-        {/* Word-split tagline */}
+        {/* Tagline de proceso en estilo editorial */}
         <p
           className="text-lg sm:text-xl md:text-2xl text-muted max-w-[600px] mx-auto text-center font-normal leading-relaxed mb-12 pointer-events-auto"
           style={{ textWrap: "balance" } as React.CSSProperties}
@@ -99,19 +59,25 @@ export default function Hero() {
           />
         </p>
 
-        {/* Magnetic CTA buttons */}
+        {/* Controles CTAs magnéticos interactivos de alta fricción reducida */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-5 w-full sm:w-auto pointer-events-auto">
 
           <MagneticButton
-            href="#projects"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-lg bg-accent text-white font-medium text-sm tracking-wide shadow-lg shadow-accent/15 hover:shadow-accent/35 hover:bg-opacity-90 active:scale-95 transition-[box-shadow,background,opacity] duration-300 flex items-center justify-center border border-accent"
+            onClick={() => {
+              const el = document.getElementById("projects");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="hero-cta w-full sm:w-auto px-8 py-3.5 rounded-lg bg-accent text-white font-medium text-sm tracking-wide shadow-lg shadow-accent/15 hover:shadow-accent/35 hover:bg-opacity-90 active:scale-95 transition-[box-shadow,background,opacity] duration-300 flex items-center justify-center border border-accent cursor-pointer"
           >
             Explore Projects
           </MagneticButton>
 
           <MagneticButton
-            href="#contact"
-            className="w-full sm:w-auto px-8 py-3.5 rounded-lg border border-border bg-card/60 text-text font-medium text-sm tracking-wide hover:border-accent hover:text-white active:scale-95 transition-[border-color,color,background] duration-300 flex items-center justify-center backdrop-blur-sm"
+            onClick={() => {
+              const el = document.getElementById("contact");
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="hero-cta w-full sm:w-auto px-8 py-3.5 rounded-lg border border-border bg-card/60 text-text font-medium text-sm tracking-wide hover:border-accent hover:text-white active:scale-95 transition-[border-color,color,background] duration-300 flex items-center justify-center backdrop-blur-sm cursor-pointer"
           >
             Get In Touch
           </MagneticButton>
@@ -119,7 +85,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Bottom fade — transitions into About section */}
+      {/* Degradado inferior para suavizar la transición con la sección About */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg2 to-transparent pointer-events-none z-10" />
     </section>
   );
