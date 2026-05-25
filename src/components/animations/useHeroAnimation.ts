@@ -20,13 +20,13 @@ export function useHeroAnimation(containerRef: React.RefObject<HTMLDivElement | 
       gsap.set(".split-word", { display: "inline-block", y: 40, opacity: 0 });
       gsap.set(".hero-cta", { y: 25, opacity: 0 });
 
-      // Stagger name character reveal
+      // Stagger name character reveal — 0.04s per char per spec
       tl.to(".split-char", {
         y: 0,
         opacity: 1,
         duration: 1.0,
-        ease: "power4.out",
-        stagger: 0.03,
+        ease: "power3.out",
+        stagger: 0.04,
       });
 
       // Stagger tagline word reveal

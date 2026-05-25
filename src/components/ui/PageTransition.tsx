@@ -31,13 +31,13 @@ export default function PageTransition() {
         opacity: 0,
         y: -20,
         duration: 0.5,
-        delay: 0.4,
+        delay: 0.3,
         ease: "power2.inOut"
       })
       .to(wipeRef.current, {
         y: "-100%",
-        duration: 0.8,
-        ease: "power4.inOut"
+        duration: 0.7,
+        ease: "power3.inOut"
       }, "-=0.2");
     });
 

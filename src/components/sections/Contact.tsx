@@ -134,21 +134,28 @@ export default function Contact() {
                 
                 {/* Form Header */}
                 <div className="border-b border-border/40 pb-6 mb-8 flex justify-between items-center">
-                  <span className="font-mono text-[10px] text-[#252535] uppercase tracking-widest">
+                  <span className="font-mono text-[10px] text-muted/50 uppercase tracking-widest">
                     [ SECURE_MESSAGE_SERVICE ]
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-pulse" />
                   </span>
                 </div>
 
                 {contactState === "success" ? (
                   <div className="py-12 text-center space-y-4" role="status" aria-live="polite">
-                    <div className="w-12 h-12 rounded-full border border-accent/40 bg-accent/10 flex items-center justify-center mx-auto text-accent mb-4 animate-[bounce_1s_ease-in-out_infinite]">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+                    {/* Pulse ring — no bounce, smooth scale + opacity */}
+                    <div className="relative w-14 h-14 mx-auto mb-4">
+                      <span className="absolute inset-0 rounded-full bg-accent/20 animate-ping" style={{ animationDuration: '1.6s' }} />
+                      <div className="relative w-14 h-14 rounded-full border border-accent/50 bg-accent/10 flex items-center justify-center text-accent">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
                     </div>
                     <h3 className="text-xl font-medium text-text">Message Sent</h3>
-                    <p className="text-sm text-[#C8C8DC] max-w-xs mx-auto">
-                      Thank you! I will review your message and reply as soon as possible.
+                    <p className="text-sm max-w-xs mx-auto" style={{ color: '#C8C8DC' }}>
+                      Thank you. I will review your message and reply as soon as possible.
                     </p>
                   </div>
                 ) : (

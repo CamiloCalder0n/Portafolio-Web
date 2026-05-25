@@ -31,8 +31,8 @@ export function useScrollReveal(
         // Left Column Text Reveal (top-to-bottom clipPath, no scrub, no pin, once: true)
         gsap.to(".about-text-container", {
           clipPath: "inset(0% 0% 0% 0%)",
-          duration: 1.4,
-          ease: "power4.out",
+          duration: 1.2,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: ".about-text-container",
             start: "top 80%",
@@ -44,8 +44,8 @@ export function useScrollReveal(
         // Right Column Photo Reveal (bottom-to-top clipPath, no scrub, no pin, once: true)
         gsap.to(".about-photo-container", {
           clipPath: "inset(0% 0% 0% 0%)",
-          duration: 1.4,
-          ease: "power4.out",
+          duration: 1.2,
+          ease: "power3.out",
           scrollTrigger: {
             trigger: ".about-photo-container",
             start: "top 80%",

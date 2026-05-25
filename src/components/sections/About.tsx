@@ -14,7 +14,7 @@ export default function About() {
       ref={sectionRef}
       id="about"
       data-scene="about"
-      className="py-[120px] px-6 sm:px-12 md:px-24 bg-bg2/80 relative border-t border-border overflow-hidden"
+      className="py-[120px] px-6 sm:px-12 md:px-24 bg-bg2/60 relative border-t border-border overflow-hidden"
       aria-label="About Me Section"
     >
       {/* Subtle background tech lines */}
