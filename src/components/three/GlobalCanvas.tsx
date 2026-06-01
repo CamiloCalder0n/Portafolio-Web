@@ -1,37 +1,147 @@
 'use client'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Suspense, useEffect, useRef, useMemo, useState } from 'react'
 import * as THREE from 'three'
-import { useSceneStore } from '@/lib/sceneStore'
 import { AsciiRenderer } from '@react-three/drei'
 
-function SceneBackground({ reducedMotion }: { reducedMotion: boolean }) {
-  const scene = useSceneStore((s) => s.scene)
-  const isRendering = useSceneStore((s) => s.isRendering)
+const vertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
 
-  // Refs for meshes
+const fragmentShader = `
+  uniform float u_time;
+  uniform float u_progress;  // 0.0 = hero, 1.0 = contact
+  uniform vec2 u_mouse;      // -1 to 1
+  uniform vec2 u_resolution;
+  varying vec2 vUv;
+
+  // Stefan Gustavson's 2D Simplex Noise
+  vec3 permute(vec3 x) {
+    return mod(((x*34.0)+1.0)*x, 289.0);
+  }
+
+  float snoise(vec2 v) {
+    const vec4 C = vec4(0.211324865405187,  // (3.0-sqrt(3.0))/6.0
+                        0.366025403784439,  // (0.5*(sqrt(3.0)-1.0))
+                       -0.577350269189626,  // -1.0 + 2.0 * C.x
+                        0.024390243902439); // 1.0 / 41.0
+    vec2 i  = floor(v + dot(v, C.yy) );
+    vec2 x0 = v -   i + dot(i, C.xx) ;
+    vec2 i1;
+    i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+    vec4 x12 = x0.xyxy + C.xxzz;
+    x12.xy -= i1;
+    i = mod(i, 289.0);
+    vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0) )
+          + i.x + vec3(0.0, i1.x, 1.0) );
+    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+    m = m*m ;
+    m = m*m ;
+    vec3 x = 2.0 * fract(p * C.www) - 1.0 ;
+    vec3 h = abs(x) - 0.5 ;
+    vec3 a0 = x - floor(x + 0.5) ;
+    vec3 g = a0*vec3(x0.x, x12.x, x12.z) + h*vec3(x0.y, x12.y, x12.w);
+    vec3 t = vec3(1.79284291400159) - 0.85373472095314 * ( a0*a0 + h*h );
+    vec3 p0 = a0*t;
+    vec3 p1 = h*t;
+    vec3 g0 = p0*vec3(x0.x, x12.x, x12.z) + p1*vec3(x0.y, x12.y, x12.w);
+    return 130.0 * dot(m, g0);
+  }
+
+  void main() {
+    vec2 uv = vUv;
+    vec2 mouse = u_mouse * 0.1;
+    
+    // === ESTADO 0: HERO — partículas dispersas ===
+    float hero_noise = snoise(uv * 4.0 + u_time * 0.1 + mouse);
+    float hero_dots = step(0.85, hero_noise);
+    vec3 hero_color = vec3(0.247, 0.258, 0.945) * hero_dots * 0.3;
+    
+    // === ESTADO 1: ABOUT — flow field orgánico ===
+    float about_noise = snoise(uv * 2.0 + u_time * 0.15 + mouse * 2.0);
+    about_noise += snoise(uv * 4.0 - u_time * 0.08) * 0.5;
+    float about_field = smoothstep(0.0, 0.5, about_noise);
+    vec3 about_color = vec3(0.247, 0.258, 0.945) * about_field * 0.2;
+    
+    // === ESTADO 2: SKILLS — hexagonal grid ===
+    vec2 hex_uv = uv * 8.0;
+    float hex = snoise(hex_uv + u_time * 0.05);
+    float hex_grid = step(0.7, abs(hex));
+    vec3 skills_color = vec3(0.247, 0.258, 0.945) * hex_grid * 0.25;
+    
+    // === ESTADO 3: PROJECTS — líneas de perspectiva ===
+    vec2 persp_uv = uv - vec2(0.5);
+    float angle = atan(persp_uv.y, persp_uv.x);
+    float dist = length(persp_uv);
+    float lines = step(0.02, mod(angle + u_time * 0.02, 0.3));
+    vec3 projects_color = vec3(0.247, 0.258, 0.945) * lines * (1.0 - dist) * 0.3;
+    
+    // === ESTADO 4: EXPERIENCE — espiral ascendente ===
+    vec2 spiral_uv = uv * 3.0 - vec2(1.5);
+    float spiral_angle = atan(spiral_uv.y, spiral_uv.x);
+    float spiral_r = length(spiral_uv);
+    float spiral = snoise(vec2(spiral_r * 3.0 - u_time * 0.2, spiral_angle));
+    vec3 experience_color = vec3(0.247, 0.258, 0.945) * step(0.6, spiral) * 0.35;
+    
+    // === CONTACT — igual que hero pero más brillante ===
+    vec3 contact_color = hero_color * 1.5;
+    
+    // === MEZCLAR SEGÚN PROGRESO ===
+    vec3 final_color = hero_color;
+    
+    if (u_progress < 0.2) {
+      float t = u_progress / 0.2;
+      final_color = mix(hero_color, about_color, smoothstep(0.0, 1.0, t));
+    } else if (u_progress < 0.4) {
+      float t = (u_progress - 0.2) / 0.2;
+      final_color = mix(about_color, skills_color, smoothstep(0.0, 1.0, t));
+    } else if (u_progress < 0.6) {
+      float t = (u_progress - 0.4) / 0.2;
+      final_color = mix(skills_color, projects_color, smoothstep(0.0, 1.0, t));
+    } else if (u_progress < 0.8) {
+      float t = (u_progress - 0.6) / 0.2;
+      final_color = mix(projects_color, experience_color, smoothstep(0.0, 1.0, t));
+    } else {
+      float t = (u_progress - 0.8) / 0.2;
+      final_color = mix(experience_color, contact_color, smoothstep(0.0, 1.0, t));
+    }
+    
+    // Base dark background integrated matching --color-base #050508
+    gl_FragColor = vec4(vec3(0.0196, 0.0196, 0.0314) + final_color, 1.0);
+  }
+`
+
+function ShaderBackground({ reducedMotion, isRendering }: { reducedMotion: boolean; isRendering: boolean }) {
+  const meshRef = useRef<THREE.Mesh>(null)
   const heroRef = useRef<THREE.Mesh>(null)
-  const aboutRef = useRef<THREE.Points>(null)
-  const skillsRef = useRef<THREE.LineSegments>(null)
-  const projectsRef = useRef<THREE.LineSegments>(null)
-  const experienceRef = useRef<THREE.Mesh>(null)
-
-  // Mouse position ref — no re-renders, just raw values
+  
   const mouse = useRef({ x: 0, y: 0 })
+  const scrollProgress = useRef(0)
+  
   const targetRot = useRef({ x: 0, y: 0 })
   const currentRot = useRef({ x: 0, y: 0 })
 
-  // Target opacities per scene
-  const targets: Record<string, Record<string, number>> = {
-    hero: { hero: 0.65, about: 0, skills: 0, projects: 0, experience: 0 },
-    contact: { hero: 0.5, about: 0, skills: 0, projects: 0, experience: 0 },
-    about: { hero: 0, about: 0.6, skills: 0, projects: 0, experience: 0 },
-    skills: { hero: 0, about: 0, skills: 0.55, projects: 0, experience: 0 },
-    projects: { hero: 0, about: 0, skills: 0, projects: 0.55, experience: 0 },
-    experience: { hero: 0, about: 0, skills: 0, projects: 0, experience: 0.6 },
-  }
+  const viewport = useThree((state) => state.viewport)
+  const { width, height } = viewport
+  const size = useThree((state) => state.size)
 
-  // Listen to mouse globally
+  // Escuchar scroll
+  useEffect(() => {
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      scrollProgress.current = max > 0 ? window.scrollY / max : 0
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    // Run once at start
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  
+  // Escuchar mouse
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       // Normalize to -1 → 1
@@ -42,20 +152,38 @@ function SceneBackground({ reducedMotion }: { reducedMotion: boolean }) {
     return () => window.removeEventListener('mousemove', onMove)
   }, [])
 
-  useFrame((_state, delta) => {
-    // PFD L0: Detiene todo renderizado y cálculos si la pestaña o componente está fuera de foco
+  const uniforms = useMemo(() => ({
+    u_time: { value: 0 },
+    u_progress: { value: 0 },
+    u_mouse: { value: new THREE.Vector2(0, 0) },
+    u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+  }), [])
+
+  // Sync resolution when window resizes
+  useEffect(() => {
+    uniforms.u_resolution.value.set(size.width, size.height)
+  }, [size, uniforms])
+
+  useFrame((state, delta) => {
     if (!isRendering) return
 
-    const t = targets[scene] ?? targets.hero
-    const speed = Math.min(delta * 3, 1)
-    const lerp = (cur: number, tgt: number) =>
-      reducedMotion ? tgt : THREE.MathUtils.lerp(cur, tgt, speed)
+    uniforms.u_time.value += delta
+    uniforms.u_progress.value = THREE.MathUtils.lerp(
+      uniforms.u_progress.value,
+      scrollProgress.current,
+      delta * 2 // suave, ~0.5s de lag
+    )
+    uniforms.u_mouse.value.x = THREE.MathUtils.lerp(
+      uniforms.u_mouse.value.x, mouse.current.x, delta * 3
+    )
+    uniforms.u_mouse.value.y = THREE.MathUtils.lerp(
+      uniforms.u_mouse.value.y, mouse.current.y, delta * 3
+    )
 
-    // Update cursor-driven rotation targets (max 15deg tilt)
+    // Parallax values for signature icosahedron
     targetRot.current.x = mouse.current.y * 0.25
     targetRot.current.y = mouse.current.x * 0.35
 
-    // Smooth the cursor rotation itself
     currentRot.current.x = THREE.MathUtils.lerp(
       currentRot.current.x, targetRot.current.x, delta * 4
     )
@@ -63,188 +191,61 @@ function SceneBackground({ reducedMotion }: { reducedMotion: boolean }) {
       currentRot.current.y, targetRot.current.y, delta * 4
     )
 
-    // ① Hero icosahedron — slow base rotation + cursor parallax
+    // Update signature icosahedron Mesh
     if (heroRef.current) {
+      const p = uniforms.u_progress.value
+      let opacity = 0
+      let scale = 1.0
+
+      if (p < 0.2) {
+        opacity = (1.0 - (p / 0.2)) * 0.65
+      } else if (p > 0.8) {
+        const t = (p - 0.8) / 0.2
+        opacity = t * 0.85
+        scale = 1.0 + t * 0.15
+      }
+
       const mat = heroRef.current.material as THREE.MeshBasicMaterial
-      mat.opacity = lerp(mat.opacity, t.hero)
+      mat.opacity = reducedMotion ? (p < 0.5 ? 0.65 : 0) : opacity
       heroRef.current.visible = mat.opacity > 0.001
+      heroRef.current.scale.setScalar(scale)
 
       if (!reducedMotion) {
         // Base auto-rotation
         heroRef.current.rotation.y += delta * 0.25
         heroRef.current.rotation.x += delta * 0.08
 
-        // Add cursor parallax on top (lerped for smoothness)
+        // Add cursor parallax on top
         heroRef.current.rotation.y += currentRot.current.y * 0.08
         heroRef.current.rotation.x += currentRot.current.x * 0.05
       }
     }
-
-    // ② About scattered points — gentle drift
-    if (aboutRef.current) {
-      const mat = aboutRef.current.material as THREE.PointsMaterial
-      mat.opacity = lerp(mat.opacity, t.about)
-      aboutRef.current.visible = mat.opacity > 0.001
-      if (!reducedMotion && mat.opacity > 0.01) {
-        aboutRef.current.rotation.y += delta * 0.08
-        aboutRef.current.rotation.x = currentRot.current.x * 0.15
-      }
-    }
-
-    // ③ Skills grid — subtle cursor tilt
-    if (skillsRef.current) {
-      const mat = skillsRef.current.material as THREE.LineBasicMaterial
-      mat.opacity = lerp(mat.opacity, t.skills)
-      skillsRef.current.visible = mat.opacity > 0.001
-      if (!reducedMotion && mat.opacity > 0.01) {
-        skillsRef.current.rotation.x = THREE.MathUtils.lerp(
-          skillsRef.current.rotation.x,
-          currentRot.current.x * 0.2,
-          delta * 3
-        )
-        skillsRef.current.rotation.y = THREE.MathUtils.lerp(
-          skillsRef.current.rotation.y,
-          currentRot.current.y * 0.2,
-          delta * 3
-        )
-      }
-    }
-
-    // ④ Projects tilted grid
-    if (projectsRef.current) {
-      const mat = projectsRef.current.material as THREE.LineBasicMaterial
-      mat.opacity = lerp(mat.opacity, t.projects)
-      projectsRef.current.visible = mat.opacity > 0.001
-      if (!reducedMotion) {
-        projectsRef.current.rotation.x = THREE.MathUtils.lerp(
-          projectsRef.current.rotation.x,
-          -0.5 + currentRot.current.x * 0.1,
-          delta * 2
-        )
-        projectsRef.current.rotation.y = THREE.MathUtils.lerp(
-          projectsRef.current.rotation.y,
-          currentRot.current.y * 0.15,
-          delta * 2
-        )
-      }
-    }
-
-    // ⑤ Experience spiral
-    if (experienceRef.current) {
-      const mat = experienceRef.current.material as THREE.MeshBasicMaterial
-      mat.opacity = lerp(mat.opacity, t.experience)
-      experienceRef.current.visible = mat.opacity > 0.001
-      if (!reducedMotion && mat.opacity > 0.01) {
-        experienceRef.current.rotation.y += delta * 0.3
-        experienceRef.current.rotation.x = currentRot.current.x * 0.2
-      }
-    }
   })
-
-  // About: scattered point cloud
-  const aboutPositions = useMemo(() => new Float32Array(
-    Array.from({ length: 180 }, () => [
-      (Math.random() - 0.5) * 12,
-      (Math.random() - 0.5) * 10,
-      (Math.random() - 0.5) * 6,
-    ]).flat()
-  ), [])
-
-  // Skills + Projects: grid lines
-  const gridPositions = useMemo(() => {
-    const pos: number[] = []
-    for (let i = -7; i <= 7; i++) {
-      pos.push(-7, i, 0, 7, i, 0)
-      pos.push(i, -7, 0, i, 7, 0)
-    }
-    return new Float32Array(pos)
-  }, [])
-
-  // Experience: CatmullRom spiral
-  const spiralPoints = useMemo(() => Array.from({ length: 8 }, (_, i) =>
-    new THREE.Vector3(
-      Math.cos(i * 1.1) * 2.8,
-      i * 1.3 - 4.5,
-      Math.sin(i * 1.1) * 2.8
-    )
-  ), [])
 
   return (
     <>
       <ambientLight intensity={0.4} />
 
-      {/* ① HERO + CONTACT — wireframe icosahedron, right side */}
-      <mesh ref={heroRef} position={[3.5, -0.5, 0]}>
-        <icosahedronGeometry args={[3.8, 1]} />
-        <meshBasicMaterial
-          color="#4A5568"
-          wireframe
-          transparent
-          opacity={0.6}
+      {/* Fullscreen GLSL Plane background */}
+      <mesh ref={meshRef}>
+        <planeGeometry args={[width, height]} />
+        <shaderMaterial
+          vertexShader={vertexShader}
+          fragmentShader={fragmentShader}
+          uniforms={uniforms}
           depthWrite={false}
+          depthTest={false}
         />
       </mesh>
 
-      {/* ② ABOUT — scattered point cloud */}
-      <points ref={aboutRef} visible={false}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[aboutPositions, 3]}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          color="#6366F1"
-          size={0.05}
-          transparent
-          opacity={0}
-          depthWrite={false}
-          sizeAttenuation
-        />
-      </points>
-
-      {/* ③ SKILLS — structured grid */}
-      <lineSegments ref={skillsRef} visible={false} position={[0, 0, -2]}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[gridPositions, 3]}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial
-          color="#6366F1"
-          transparent
-          opacity={0}
-          depthWrite={false}
-        />
-      </lineSegments>
-
-      {/* ④ PROJECTS — tilted perspective grid */}
-      <lineSegments ref={projectsRef} visible={false} position={[0, 0, -3]}>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[gridPositions, 3]}
-          />
-        </bufferGeometry>
-        <lineBasicMaterial
-          color="#6366F1"
-          transparent
-          opacity={0}
-          depthWrite={false}
-        />
-      </lineSegments>
-
-      {/* ⑤ EXPERIENCE — spiral tube */}
-      <mesh ref={experienceRef} visible={false} position={[1, 0, -1]}>
-        <tubeGeometry args={[
-          new THREE.CatmullRomCurve3(spiralPoints),
-          120, 0.025, 8, false
-        ]} />
+      {/* Floating signature icosahedron wireframe, right side */}
+      <mesh ref={heroRef} position={[3.5, -0.5, 0]}>
+        <icosahedronGeometry args={[3.8, 1]} />
         <meshBasicMaterial
           color="#6366F1"
+          wireframe
           transparent
-          opacity={0}
+          opacity={0.65}
           depthWrite={false}
         />
       </mesh>
@@ -255,7 +256,7 @@ function SceneBackground({ reducedMotion }: { reducedMotion: boolean }) {
 export default function GlobalCanvas() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [reducedMotion, setReducedMotion] = useState(false)
-  const setIsRendering = useSceneStore((s) => s.setIsRendering)
+  const [isRendering, setIsRendering] = useState(true)
 
   useEffect(() => {
     // 1. Detect reduced motion
@@ -301,7 +302,7 @@ export default function GlobalCanvas() {
         el.removeEventListener('contentvisibilityautostatechange', handleStateChange)
       }
     }
-  }, [setIsRendering])
+  }, [])
 
   return (
     <div
@@ -324,7 +325,7 @@ export default function GlobalCanvas() {
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>
-          <SceneBackground reducedMotion={reducedMotion} />
+          <ShaderBackground reducedMotion={reducedMotion} isRendering={isRendering} />
           {/* PFD L1: Sombreador ASCII en tiempo real para un impacto visual único de 50ms */}
           {!reducedMotion && (
             <AsciiRenderer 

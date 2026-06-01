@@ -8,11 +8,6 @@ const GlobalCanvas = dynamic(
   { ssr: false }
 )
 
-const SceneWatcher = dynamic(
-  () => import('./SceneWatcher'),
-  { ssr: false }
-)
-
 export default function ThreeWrapper() {
   // Inicializar smooth scroll global de Lenis
   useLenis()
@@ -20,7 +15,7 @@ export default function ThreeWrapper() {
   return (
     <>
       <GlobalCanvas />
-      <SceneWatcher />
     </>
   )
 }
+
