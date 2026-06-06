@@ -1,94 +1,85 @@
 "use client";
 
 import { useEffect } from "react";
-import { gsap } from "@/lib/gsap";
+import { gsap, SplitText } from "@/lib/gsap";
 
-export function useHeroAnimation(containerRef: React.RefObject<HTMLDivElement | null>) {
+const TARGETS = [".hero-eyebrow", ".hero-sub", ".hero-cta-row"];
+
+/**
+ * Entrada editorial del Hero.
+ *
+ * Para evitar el "doble reveal" (verse completo durante la persiana y luego
+ * re-animarse), el contenido se OCULTA al montar (mientras el loader/slats
+ * tapan todo) y se revela UNA sola vez cuando `start` (preloader terminado).
+ *
+ * - Titular: reveal por máscara de línea (SplitText lines + mask).
+ * - Parallax sutil del titular al scrollear.
+ * - prefers-reduced-motion → todo visible, sin animación.
+ */
+export function useHeroAnimation(
+  ref: React.RefObject<HTMLElement | null>,
+  start: boolean
+) {
+  // 1) Ocultar al montar (el Hero está detrás del loader → sin flash visible).
   useEffect(() => {
-    if (!containerRef.current) return;
+    const root = ref.current;
+    if (!root) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const ctx = gsap.context(() => {
+      gsap.set(TARGETS, { opacity: 0, y: 24 });
+      gsap.set("[data-hero-display]", { opacity: 0 });
+    }, ref);
+    return () => ctx.revert();
+  }, [ref]);
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      return;
-    }
+  // 2) Revelar una sola vez al terminar el loader.
+  useEffect(() => {
+    const root = ref.current;
+    if (!root || !start) return;
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline();
+      const display = root.querySelector<HTMLElement>("[data-hero-display]");
 
-      // Configuración de estados iniciales para evitar parpadeos visuales
-      gsap.set(".split-char", { display: "inline-block", y: 60, opacity: 0 });
-      gsap.set(".split-word", { display: "inline-block", y: 30, opacity: 0 });
-      gsap.set(".hero-cta", { y: 25, opacity: 0 });
-      gsap.set(".label-caps", { y: -20, opacity: 0 });
+      if (reduce) {
+        gsap.set([...TARGETS, "[data-hero-display]"], { opacity: 1, y: 0 });
+        return;
+      }
 
-      // 1. Desvelar etiqueta superior
-      tl.to(".label-caps", {
-        y: 0,
-        opacity: 0.9,
-        duration: 0.6,
-        ease: "power2.out"
-      });
+      // Split + ocultar líneas ANTES de mostrar el titular (evita parpadeo).
+      const split = display
+        ? SplitText.create(display, {
+            type: "lines",
+            mask: "lines",
+            linesClass: "reveal-line",
+          })
+        : null;
+      if (split) gsap.set(split.lines, { yPercent: 110 });
+      gsap.set("[data-hero-display]", { opacity: 1 });
 
-      // 2. Efecto de Scramble ASCII + Revelación de caracteres del Nombre
-      tl.to(".split-char", {
-        y: 0,
-        opacity: 1,
-        duration: 0.8,
-        ease: "jc.smooth",
-        stagger: 0.035,
-        onStart: () => {
-          const chars = document.querySelectorAll(".split-char");
-          const ASCII_NOISE = '!@#$%^&*()░▒▓█▄▀■□▪▫';
+      const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+      tl.to(".hero-eyebrow", { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" });
+      if (split) {
+        tl.to(split.lines, { yPercent: 0, duration: 1.0, stagger: 0.09 }, "-=0.3");
+      }
+      tl.to(".hero-sub", { opacity: 1, y: 0, duration: 0.8 }, "-=0.6");
+      tl.to(".hero-cta-row", { opacity: 1, y: 0, duration: 0.7 }, "-=0.5");
 
-          chars.forEach((char) => {
-            const finalLetter = char.textContent || "";
-            const obj = { val: 0 };
-            
-            // PFD L1: La oscilación de ruido ASCII a texto legible crea un bias cognitivo de alta complejidad técnica
-            gsap.to(obj, {
-              val: 1,
-              duration: 1.1,
-              ease: "power2.out",
-              delay: Math.random() * 0.55,
-              onUpdate: () => {
-                if (obj.val < 0.75) {
-                  char.textContent = ASCII_NOISE[Math.floor(Math.random() * ASCII_NOISE.length)];
-                } else {
-                  char.textContent = finalLetter;
-                }
-              }
-            });
-          });
-        }
-      }, "-=0.3");
-
-      // 3. Revelación del subtítulo palabra por palabra
-      tl.to(
-        ".split-word",
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.75,
-          ease: "jc.smooth",
-          stagger: 0.04,
-        },
-        "-=0.55"
-      );
-
-      // 4. Botones interactivos magnéticos con deslizamiento suave
-      tl.to(
-        ".hero-cta",
-        {
-          y: 0,
-          opacity: 1,
-          duration: 0.75,
-          ease: "jc.smooth",
-          stagger: 0.1,
-        },
-        "-=0.4"
-      );
-
-    }, containerRef);
+      if (display) {
+        gsap.to(display, {
+          yPercent: -12,
+          ease: "none",
+          scrollTrigger: {
+            trigger: root,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+          },
+        });
+      }
+    }, ref);
 
     return () => ctx.revert();
-  }, [containerRef]);
+  }, [ref, start]);
 }

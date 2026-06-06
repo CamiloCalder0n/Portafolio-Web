@@ -45,3 +45,12 @@ next-env.d.ts
 .agent/
 .agents/
 skills-lock.json
+
+# AI / process docs — locales, fuera del repo público
+.claude/
+CLAUDE.md
+BAFFAIT-FLOW.md
+DESIGN.md
+STATUS.md
+CLAUDE_CODE_MASTER_PLAN.md
+/design-system/

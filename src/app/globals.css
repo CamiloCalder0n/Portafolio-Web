@@ -9,8 +9,18 @@
   --color-text: #E8E8F5;
   --color-accent: #6366F1;
 
-  --font-sans: var(--font-newsreader), Georgia, serif;
-  --font-display: var(--font-syne), sans-serif;
+  /* Ritmo de espaciado editorial. */
+  --space-section: 160px;
+  --space-section-sm: 96px;
+}
+
+/* `inline` es OBLIGATORIO con next/font: inyecta el var() tal cual en las
+   utilidades (font-sans/display/mono) para que se resuelva en RUNTIME. Sin
+   `inline`, Tailwind v4 intenta resolverlo en build, no puede, y descarta el
+   token → todo cae al sans por defecto. */
+@theme inline {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-newsreader), Georgia, serif;
   --font-mono: var(--font-dm-mono), monospace;
 }
 
@@ -21,33 +31,90 @@ html {
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-body {
-  background-color: var(--color-base);
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.7;
   overflow-x: hidden;
 }
 
-/* Headings: weight 500 as per design rules */
+body {
+  /* SIN background-color opaco aquí: el fondo oscuro vive en `html` (backstop).
+     Un bloque in-flow (body) pinta su fondo ENCIMA de los fixed con z-index
+     negativo, así que un body opaco taparía el aurora (-z-9) y el
+     ProgressiveBackground (-z-10). Body transparente → se ven. */
+  color: var(--color-text);
+  /* Refs directas a las vars de next/font (definidas en <body>). NO usar
+     var(--font-sans): con @theme inline ese token no existe en :root. */
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  font-weight: 400;
+  overflow-x: hidden;
+}
+
+/* Headings editoriales: serif Newsreader, peso ligero, tracking apretado. */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
-  font-weight: 500;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 400;
   color: var(--color-text);
   letter-spacing: -0.02em;
+  line-height: 1.04;
   text-wrap: balance;
 }
 
-/* Upper-case labels */
+/* Acento editorial: palabras en cursiva del serif. */
+.italic-accent {
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* Eyebrow/meta discreto (sustituye al label terminal agresivo). */
 .label-caps {
-  font-size: 11px;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.12em;
   font-weight: 500;
   color: var(--color-muted);
+}
+
+/* Utilidades editoriales de ritmo y escala. */
+.section-pad {
+  padding-top: var(--space-section-sm);
+  padding-bottom: var(--space-section-sm);
+}
+@media (min-width: 768px) {
+  .section-pad {
+    padding-top: var(--space-section);
+    padding-bottom: var(--space-section);
+  }
+}
+
+/* Display fluido para titulares de sección. Escala Baffait: grande pero
+   CONTENIDO (no gigante). El Hero conserva su propio tamaño dominante. */
+.text-display {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  line-height: 1.0;
+  font-size: clamp(2rem, 5vw, 4rem);
+}
+
+/* Subrayado de link editorial (se dibuja en hover). */
+.link-underline {
+  position: relative;
+}
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link-underline:hover::after {
+  transform: scaleX(1);
 }
 
 /* Custom premium scrollbar */
@@ -108,20 +175,9 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Sombreador/Renderizador ASCII personalizado */
+/* Evita que overlays sobre el canvas capturen eventos. */
 canvas + div {
   pointer-events: none;
 }
 
-div > pre {
-  font-family: var(--font-mono) !important;
-  font-size: 9px !important;
-  line-height: 7px !important;
-  letter-spacing: 2px !important;
-  color: var(--color-accent) !important;
-  opacity: 0.55;
-  background-color: transparent !important;
-  pointer-events: none;
-  font-weight: 500;
-  user-select: none;
-}
+/* (Cursor personalizado eliminado — se usa el cursor nativo). */

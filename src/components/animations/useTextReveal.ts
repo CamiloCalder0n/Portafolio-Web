@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, RefObject } from 'react'
-import { gsap, ScrollTrigger, SplitText } from '@/lib/gsap'
+import { gsap, SplitText } from '@/lib/gsap'
 
 export function useTextReveal(ref: RefObject<HTMLElement | null>) {
   useEffect(() => {
@@ -10,7 +10,7 @@ export function useTextReveal(ref: RefObject<HTMLElement | null>) {
     const ctx = gsap.context(() => {
       const headings = gsap.utils.toArray<HTMLElement>('[data-reveal="lines"]')
       headings.forEach((el) => {
-        const split = new SplitText(el, {
+        const split = SplitText.create(el, {
           type: 'lines',
           linesClass: 'reveal-line',
           autoSplit: true,

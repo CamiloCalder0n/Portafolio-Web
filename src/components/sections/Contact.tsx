@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import type { IconType } from "react-icons";
+import { FaGithub, FaLinkedinIn } from "react-icons/fa6";
+import { HiOutlineEnvelope, HiOutlineMapPin } from "react-icons/hi2";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 type ContactState = "idle" | "submitting" | "success" | "error";
 
@@ -9,14 +13,82 @@ interface ContactResponse {
   error?: string;
 }
 
+interface ContactDetail {
+  label: string;
+  value: string;
+  href?: string;
+  external?: boolean;
+  Icon: IconType;
+}
+
 const INITIAL_FORM_STATE = { name: "", email: "", message: "" };
+
+const CONTACT_DETAILS: ContactDetail[] = [
+  {
+    label: "Email",
+    value: "calderoncamilo905@gmail.com",
+    href: "mailto:calderoncamilo905@gmail.com",
+    Icon: HiOutlineEnvelope,
+  },
+  { label: "Location", value: "Bucaramanga, Colombia", Icon: HiOutlineMapPin },
+  {
+    label: "LinkedIn",
+    value: "Juan Camilo Calderón",
+    href: "https://linkedin.com/in/juan-camilo-calderon-calderon-729619389",
+    external: true,
+    Icon: FaLinkedinIn,
+  },
+  {
+    label: "GitHub",
+    value: "CamiloCalder0n",
+    href: "https://github.com/CamiloCalder0n",
+    external: true,
+    Icon: FaGithub,
+  },
+];
+
+const FIELD_CLASS =
+  "w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-base text-text placeholder:text-muted/45 focus:border-accent focus-visible:outline-none transition-colors duration-300";
 
 export default function Contact() {
   const [formState, setFormState] = useState(INITIAL_FORM_STATE);
   const [contactState, setContactState] = useState<ContactState>("idle");
   const [feedback, setFeedback] = useState("");
+  const sectionRef = useRef<HTMLElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  useEffect(() => {
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const ctx = gsap.context(() => {
+      if (prefersReduced) {
+        gsap.set("[data-reveal]", { opacity: 1, y: 0 });
+        return;
+      }
+
+      gsap.from("[data-reveal]", {
+        opacity: 0,
+        y: 30,
+        duration: 1,
+        ease: "jc.soft",
+        stagger: 0.08,
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 80%",
+          once: true,
+        },
+      });
+    }, sectionRef);
+
+    ScrollTrigger.refresh();
+
+    return () => ctx.revert();
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     if (contactState === "error") {
       setContactState("idle");
       setFeedback("");
@@ -56,193 +128,185 @@ export default function Contact() {
 
   return (
     <section
+      ref={sectionRef}
       id="contact"
-      className="pt-24 pb-[60px] sm:pt-32 sm:pb-[60px] px-6 sm:px-12 md:px-24 bg-bg2/80 relative border-t border-border overflow-hidden"
-      aria-label="Contact & Connection Section"
+      className="section-pad px-6 sm:px-12 md:px-24 relative overflow-hidden"
+      aria-label="Contact"
     >
-      {/* Subtle floating background detail grids */}
-      <div className="absolute inset-0 bg-[radial-gradient(rgba(99,102,241,0.012)_1.5px,transparent_1.5px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-20 lg:gap-x-24">
+          {/* Left: headline + warm line + contact details */}
+          <div className="lg:col-span-6 flex flex-col">
+            <h2
+              data-reveal
+              className="text-display text-text max-w-2xl"
+            >
+              Where good code and good design become the{" "}
+              <span className="italic-accent">same thing.</span>
+            </h2>
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-          
-          {/* Left Column: Heading and Connection Details */}
-          <div className="lg:col-span-5 flex flex-col justify-start space-y-8">
-            <div>
-              <span className="label-caps mb-4 block tracking-[0.15em] text-accent">GET IN TOUCH</span>
-              <h2 className="text-3xl sm:text-5xl font-medium tracking-tight text-text mb-6">
-                Let&apos;s Build something real.
-              </h2>
-              <p className="text-sm sm:text-base leading-relaxed max-w-md" style={{ color: '#C8C8DC' }}>
-                Whether you have an internship opportunity, a freelance project, or simply want to chat about creative coding, feel free to reach out. I am always open to exploring new engineering horizons.
-              </p>
-            </div>
+            <p
+              data-reveal
+              className="mt-8 text-lg leading-relaxed text-muted max-w-md"
+            >
+              An internship, a freelance project, or simply a conversation about
+              creative coding — I&apos;m always glad to hear from people building
+              with care.
+            </p>
 
-            {/* Connection Information List */}
-            <div className="flex flex-col gap-6">
-              
-              {/* Row 1: Email */}
-              <div className="flex flex-col gap-1">
-                <span style={{fontSize:'11px', letterSpacing:'0.08em', 
-                  color:'#C8C8DC', fontWeight:500}}>EMAIL</span>
-                <a href="mailto:calderoncamilo905@gmail.com"
-                  style={{color:'#C8C8DC', fontSize:'14px'}}>
-                  calderoncamilo905@gmail.com
-                </a>
-              </div>
-
-              {/* Row 2: Location */}
-              <div className="flex flex-col gap-1">
-                <span style={{fontSize:'11px', letterSpacing:'0.08em',
-                  color:'#C8C8DC', fontWeight:500}}>LOCATION</span>
-                <span style={{color:'#C8C8DC', fontSize:'14px'}}>
-                  Bucaramanga, Colombia
-                </span>
-              </div>
-
-              {/* Row 3: Linkedin */}
-              <div className="flex flex-col gap-1">
-                <span style={{fontSize:'11px', letterSpacing:'0.08em',
-                  color:'#C8C8DC', fontWeight:500}}>LINKEDIN</span>
-                <a href="https://linkedin.com/in/juan-camilo-calderon-calderon-729619389"
-                  target="_blank" rel="noopener noreferrer" style={{color:'#C8C8DC', fontSize:'14px'}}>
-                  Juan Camilo Calderón
-                </a>
-              </div>
-
-              {/* Row 4: Github */}
-              <div className="flex flex-col gap-1">
-                <span style={{fontSize:'11px', letterSpacing:'0.08em',
-                  color:'#C8C8DC', fontWeight:500}}>GITHUB</span>
-                <a href="https://github.com/CamiloCalder0n"
-                  target="_blank" rel="noopener noreferrer" style={{color:'#C8C8DC', fontSize:'14px'}}>
-                  CamiloCalder0n
-                </a>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Right Column: Premium Contact Form */}
-          <div className="lg:col-span-7">
-            <div className="border border-border bg-card/40 rounded-2xl p-6 sm:p-10 relative overflow-hidden backdrop-blur-md">
-              
-              {/* Form border lighting glow ambient element */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-accent/5 rounded-full blur-3xl -z-10 pointer-events-none" />
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                
-                {/* Form Header */}
-                <div className="border-b border-border/40 pb-6 mb-8 flex justify-between items-center">
-                  <span className="font-mono text-[10px] text-muted/50 uppercase tracking-widest">
-                    [ SECURE_MESSAGE_SERVICE ]
+            <dl data-reveal className="mt-14 flex flex-col gap-6">
+              {CONTACT_DETAILS.map(({ label, value, href, external, Icon }) => (
+                <div key={label} className="flex items-center gap-4">
+                  <span
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border/70 text-muted"
+                    aria-hidden="true"
+                  >
+                    <Icon className="h-[18px] w-[18px]" />
                   </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent/60 animate-pulse" />
-                  </span>
-                </div>
-
-                {contactState === "success" ? (
-                  <div className="py-12 text-center space-y-4" role="status" aria-live="polite">
-                    {/* Pulse ring — no bounce, smooth scale + opacity */}
-                    <div className="relative w-14 h-14 mx-auto mb-4">
-                      <span className="absolute inset-0 rounded-full bg-accent/20 animate-ping" style={{ animationDuration: '1.6s' }} />
-                      <div className="relative w-14 h-14 rounded-full border border-accent/50 bg-accent/10 flex items-center justify-center text-accent">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-medium text-text">Message Sent</h3>
-                    <p className="text-sm max-w-xs mx-auto" style={{ color: '#C8C8DC' }}>
-                      Thank you. I will review your message and reply as soon as possible.
-                    </p>
+                  <div className="flex flex-col gap-0.5">
+                    <dt className="text-xs uppercase tracking-[0.12em] text-muted/60">
+                      {label}
+                    </dt>
+                    <dd className="text-base text-text">
+                      {href ? (
+                        <a
+                          href={href}
+                          className="link-underline hover:text-accent transition-colors duration-300 focus-visible:outline-none focus-visible:text-accent"
+                          {...(external
+                            ? { target: "_blank", rel: "noopener noreferrer" }
+                            : {})}
+                        >
+                          {value}
+                        </a>
+                      ) : (
+                        value
+                      )}
+                    </dd>
                   </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      
-                      {/* Name Input */}
-                      <div className="space-y-2">
-                        <label htmlFor="name" className="font-mono text-[11px] text-muted uppercase tracking-widest block">
-                          NAME
-                        </label>
-                        <input
-                          required
-                          type="text"
-                          id="name"
-                          name="name"
-                          value={formState.name}
-                          onChange={handleChange}
-                          autoComplete="name"
-                          placeholder="Your name"
-                          className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-colors duration-300 font-mono"
-                        />
-                      </div>
-
-                      {/* Email Input */}
-                      <div className="space-y-2">
-                        <label htmlFor="email" className="font-mono text-[11px] text-muted uppercase tracking-widest block">
-                          EMAIL
-                        </label>
-                        <input
-                          required
-                          type="email"
-                          id="email"
-                          name="email"
-                          value={formState.email}
-                          onChange={handleChange}
-                          autoComplete="email"
-                          placeholder="your@email.com"
-                          className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-colors duration-300 font-mono"
-                        />
-                      </div>
-
-                    </div>
-
-                    {/* Message TextArea */}
-                    <div className="space-y-2">
-                      <label htmlFor="message" className="font-mono text-[11px] text-muted uppercase tracking-widest block">
-                        MESSAGE
-                      </label>
-                      <textarea
-                        required
-                        id="message"
-                        name="message"
-                        rows={5}
-                        value={formState.message}
-                        onChange={handleChange}
-                        placeholder="Tell me about your project..."
-                        className="w-full bg-base/40 border border-border/80 rounded-lg px-4 py-3 text-sm text-text placeholder:text-border focus:border-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-colors duration-300 font-mono resize-none"
-                      />
-                    </div>
-
-                    <p
-                      className={`min-h-5 text-sm ${
-                        contactState === "error" ? "text-text" : "text-muted"
-                      }`}
-                      role={contactState === "error" ? "alert" : "status"}
-                      aria-live="polite"
-                    >
-                      {contactState === "error" ? feedback : ""}
-                    </p>
-
-                    {/* Submit Button */}
-                    <button
-                      type="submit"
-                      disabled={contactState === "submitting"}
-                      className="w-full py-4 rounded-lg bg-accent text-white font-mono text-xs uppercase tracking-widest font-semibold hover:opacity-85 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent transition-opacity duration-300 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      {contactState === "submitting" ? "Sending..." : "Send Message"} &rarr;
-                    </button>
-                  </>
-                )}
-
-              </form>
-
-            </div>
+                </div>
+              ))}
+            </dl>
           </div>
 
+          {/* Right: form card */}
+          <div data-reveal className="lg:col-span-6 lg:pt-3">
+            <div className="border border-border bg-card/40 rounded-2xl p-6 sm:p-10 backdrop-blur-md relative overflow-hidden">
+              {/* Subtle indigo glow — corner accent */}
+              <div
+                aria-hidden="true"
+                className="pointer-events-none -z-10 absolute -top-16 -right-16 h-56 w-56 rounded-full bg-accent/5 blur-3xl"
+              />
+
+              {contactState === "success" ? (
+                <div
+                  className="flex flex-col justify-center min-h-[20rem]"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <h3 className="font-display text-3xl sm:text-4xl text-text">
+                    Message <span className="italic-accent">sent.</span>
+                  </h3>
+                  <p className="mt-5 text-lg leading-relaxed text-muted">
+                    Thank you for reaching out. I&apos;ll read your message and
+                    reply as soon as I can.
+                  </p>
+                </div>
+              ) : (
+                <form
+                  onSubmit={handleSubmit}
+                  className="flex flex-col gap-7"
+                  noValidate
+                >
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="name"
+                      className="text-sm text-muted/70 tracking-wide"
+                    >
+                      Name
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      id="name"
+                      name="name"
+                      value={formState.name}
+                      onChange={handleChange}
+                      autoComplete="name"
+                      placeholder="Your name"
+                      className={FIELD_CLASS}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="email"
+                      className="text-sm text-muted/70 tracking-wide"
+                    >
+                      Email
+                    </label>
+                    <input
+                      required
+                      type="email"
+                      id="email"
+                      name="email"
+                      value={formState.email}
+                      onChange={handleChange}
+                      autoComplete="email"
+                      placeholder="your@email.com"
+                      className={FIELD_CLASS}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="message"
+                      className="text-sm text-muted/70 tracking-wide"
+                    >
+                      Message
+                    </label>
+                    <textarea
+                      required
+                      id="message"
+                      name="message"
+                      rows={4}
+                      value={formState.message}
+                      onChange={handleChange}
+                      placeholder="Tell me a little about what you have in mind…"
+                      className={`${FIELD_CLASS} resize-none`}
+                    />
+                  </div>
+
+                  <p
+                    className={`min-h-5 text-sm ${
+                      contactState === "error" ? "text-accent" : "text-muted"
+                    }`}
+                    role={contactState === "error" ? "alert" : "status"}
+                    aria-live="polite"
+                  >
+                    {contactState === "error" ? feedback : ""}
+                  </p>
+
+                  <button
+                    type="submit"
+                    disabled={contactState === "submitting"}
+                    className="group inline-flex items-center gap-3 self-start border border-border/80 rounded-lg px-6 py-3 text-base text-text hover:border-accent hover:text-accent disabled:cursor-wait disabled:opacity-60 focus-visible:outline-none focus-visible:border-accent transition-colors duration-300 cursor-pointer"
+                  >
+                    <span>
+                      {contactState === "submitting"
+                        ? "Sending…"
+                        : "Send message"}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="transition-transform duration-300 group-hover:translate-x-1"
+                    >
+                      &rarr;
+                    </span>
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>

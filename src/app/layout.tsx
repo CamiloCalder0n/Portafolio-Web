@@ -1,12 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Syne, DM_Mono, Newsreader } from "next/font/google";
+import { Inter, DM_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 import ThreeWrapper from "@/components/three/ThreeWrapper";
+import Preloader from "@/components/ui/Preloader";
+import ProgressiveBackground from "@/components/ui/ProgressiveBackground";
 
-const syne = Syne({
+// Sans neutra para cuerpo/UI/meta — discreta, deja brillar al serif display.
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-syne",
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -58,8 +61,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${syne.variable} ${dmMono.variable} ${newsreader.variable} font-sans antialiased bg-base text-text selection:bg-accent selection:text-white`}
+        className={`${inter.variable} ${dmMono.variable} ${newsreader.variable} font-sans antialiased text-text selection:bg-accent selection:text-white`}
       >
+        <ProgressiveBackground />
+        <Preloader />
         <ThreeWrapper />
         {children}
       </body>

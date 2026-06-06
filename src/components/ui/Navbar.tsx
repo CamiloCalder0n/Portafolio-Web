@@ -56,7 +56,7 @@ export default function Navbar() {
       <nav
         className={`fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] sm:w-[calc(100%-48px)] max-w-5xl z-50 rounded-full border transition-all duration-500 ${
           scrolled
-            ? "bg-base/70 backdrop-blur-xl border-border/80 shadow-[0_8px_32px_rgba(0,0,0,0.4)] py-3 px-6 sm:px-8"
+            ? "bg-base/95 backdrop-blur-xl border-border/80 shadow-[0_8px_32px_rgba(0,0,0,0.4)] py-3 px-6 sm:px-8"
             : "bg-base/20 backdrop-blur-md border-border/40 py-4 px-6 sm:px-8"
         }`}
       >
@@ -119,29 +119,26 @@ export default function Navbar() {
           aria-label="Mobile navigation"
         >
           <div className="flex flex-col gap-8">
-            <span className="font-mono text-[10px] text-accent tracking-[0.25em] uppercase border-b border-border pb-4">
-              [ Navigation Index ]
+            <span className="label-caps text-muted/70 border-b border-border pb-4">
+              Menu
             </span>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-5">
               {navLinks.map((link, idx) => (
                 <a
                   key={link.label}
                   ref={idx === 0 ? firstLinkRef : undefined}
                   href={link.href}
                   onClick={closeMenu}
-                  className="text-2xl font-medium tracking-tight text-text hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent transition-colors duration-300 flex items-baseline gap-3"
+                  className="font-display text-4xl font-light tracking-tight text-text hover:text-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent transition-colors duration-300"
                 >
-                  <span className="font-mono text-xs text-muted/40">0{idx + 1}.</span>
                   {link.label}
                 </a>
               ))}
             </div>
-            <div className="mt-8 pt-8 border-t border-border flex flex-col gap-2">
-              <span className="font-mono text-[9px] text-muted tracking-widest uppercase">
-                Juan Camilo Calderón Calderón
-              </span>
-              <span className="font-mono text-[9px] text-muted/60 tracking-wider">
-                Systems Engineering Student
+            <div className="mt-8 pt-8 border-t border-border flex flex-col gap-1.5">
+              <span className="text-sm text-text">Juan Camilo Calderón</span>
+              <span className="text-xs text-muted/70">
+                Systems Engineering Student · Bucaramanga, Colombia
               </span>
             </div>
           </div>

@@ -1,92 +1,78 @@
 "use client";
 
 import React, { useRef } from "react";
-import SplitText from "../ui/SplitText";
 import { useHeroAnimation } from "../animations/useHeroAnimation";
 import MagneticButton from "../ui/MagneticButton";
+import { usePreloaderStore } from "@/store/usePreloaderStore";
 
 export default function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isComplete = usePreloaderStore((s) => s.isComplete);
 
-  // Revelaciones cinemáticas con GSAP y Scramble ASCII al cargar
-  useHeroAnimation(containerRef);
+  // La entrada se dispara cuando la cortina del loader termina.
+  useHeroAnimation(containerRef, isComplete);
+
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <section
       ref={containerRef}
       id="hero"
       data-scene="hero"
-      className="min-h-screen w-full flex items-center justify-center px-6 sm:px-12 md:px-24 relative overflow-hidden"
-      aria-label="Introduction Section"
-      style={{ background: "transparent" }}
+      aria-label="Introduction"
+      className="relative min-h-screen w-full flex flex-col justify-center px-6 sm:px-12 md:px-24 overflow-hidden"
     >
-      {/* PFD L1: Efecto vignette sutil para proteger la legibilidad del texto sobre el lienzo ASCII 3D */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(5,5,8,0.55) 100%)",
-        }}
-      />
-
-      <div className="max-w-5xl mx-auto w-full text-center relative z-20 flex flex-col items-center justify-center pointer-events-none">
-
-        {/* Etiqueta superior en mayúsculas estilo PFD L2 */}
-        <span className="label-caps mb-6 text-xs sm:text-sm text-accent tracking-[0.15em] opacity-90 block pointer-events-auto select-none">
-          SYSTEMS ENGINEERING STUDENT — UNAB
+      <div className="max-w-5xl w-full">
+        {/* Eyebrow / meta discreto */}
+        <span className="hero-eyebrow label-caps block mb-8 text-accent/90">
+          Juan Camilo Calderón — Full-Stack Developer &amp; UX/UI
         </span>
 
-        {/* Nombre principal en Syne Display con animación Scramble ASCII */}
+        {/* Titular editorial en serif, con acentos en cursiva */}
         <h1
-          className="text-4xl sm:text-6xl md:text-8xl font-medium tracking-tight text-text leading-tight mb-8 pointer-events-auto"
-          style={{ textWrap: "balance" } as React.CSSProperties}
+          data-hero-display
+          className="font-display font-light text-text max-w-[17ch]"
+          style={{
+            fontSize: "clamp(2.5rem, 6.4vw, 5.5rem)",
+            lineHeight: 1.14, // holgura para que la máscara no recorte descendentes/itálicas
+            letterSpacing: "-0.02em",
+          }}
         >
-          <SplitText
-            text="Juan Camilo Calderón"
-            type="chars"
-            className="block"
-          />
+          I craft <span className="italic-accent">high-performance</span> systems
+          and <span className="italic-accent">immersive</span> digital
+          experiences.
         </h1>
 
-        {/* Tagline de proceso en estilo editorial */}
-        <p
-          className="text-lg sm:text-xl md:text-2xl text-muted max-w-[600px] mx-auto text-center font-normal leading-relaxed mb-12 pointer-events-auto"
-          style={{ textWrap: "balance" } as React.CSSProperties}
-        >
-          <SplitText
-            text="Crafting high-performance full-stack systems and immersive 3D digital experiences."
-            type="words"
-          />
+        {/* Subtítulo editorial */}
+        <p className="hero-sub mt-9 max-w-[52ch] text-lg sm:text-xl text-muted leading-relaxed">
+          Systems engineering student at UNAB, Colombia. I care about the craft
+          where good code and good design become the same thing.
         </p>
 
-        {/* Controles CTAs magnéticos interactivos de alta fricción reducida */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-5 w-full sm:w-auto pointer-events-auto">
-
+        {/* CTAs magnéticos */}
+        <div className="hero-cta-row mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <MagneticButton
-            onClick={() => {
-              const el = document.getElementById("projects");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="hero-cta w-full sm:w-auto px-8 py-3.5 rounded-lg bg-accent text-white font-medium text-sm tracking-wide shadow-lg shadow-accent/15 hover:shadow-accent/35 hover:bg-opacity-90 active:scale-95 transition-[box-shadow,background,opacity] duration-300 flex items-center justify-center border border-accent cursor-pointer"
+            onClick={() => scrollTo("projects")}
+            className="px-7 py-3.5 rounded-full bg-accent text-white font-medium text-sm tracking-wide shadow-lg shadow-accent/15 hover:shadow-accent/30 transition-shadow duration-300 cursor-pointer"
           >
-            Explore Projects
+            View work →
           </MagneticButton>
 
           <MagneticButton
-            onClick={() => {
-              const el = document.getElementById("contact");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }}
-            className="hero-cta w-full sm:w-auto px-8 py-3.5 rounded-lg border border-border bg-card/60 text-text font-medium text-sm tracking-wide hover:border-accent hover:text-white active:scale-95 transition-[border-color,color,background] duration-300 flex items-center justify-center backdrop-blur-sm cursor-pointer"
+            onClick={() => scrollTo("contact")}
+            className="px-7 py-3.5 rounded-full border border-border text-text font-medium text-sm tracking-wide hover:border-accent transition-colors duration-300 cursor-pointer"
           >
-            Get In Touch
+            Get in touch
           </MagneticButton>
-
         </div>
       </div>
 
-      {/* Degradado inferior para suavizar la transición con la sección About */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg2 to-transparent pointer-events-none z-10" />
+      {/* Indicador de scroll discreto */}
+      <span className="hero-sub absolute bottom-8 left-6 sm:left-12 md:left-24 label-caps text-muted/50">
+        Scroll
+      </span>
     </section>
   );
 }
